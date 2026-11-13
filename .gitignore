@@ -1,5 +1,9 @@
-# Build & Output folders
-build
-obj
-bin
-BinaryReceptor.zip
+__pycache__/
+*.py[cod]
+build/
+dist/
+*.spec
+.pytest_cache/
+*.tmp
+*.csv
+release_assets/
