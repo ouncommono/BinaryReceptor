@@ -3,7 +3,7 @@ setlocal
 cd /d "%~dp0"
 
 echo ===================================================
-echo  BinaryReceptor v3.2.0 - Standalone Windows Build
+echo  BinaryReceptor v3.4.0 - Standalone Windows Build
 echo ===================================================
 
 python build.py

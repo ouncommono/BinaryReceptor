@@ -21,6 +21,9 @@ INPUT_KEYBOARD = 1
 KEYEVENTF_KEYUP = 0x0002
 KEYEVENTF_UNICODE = 0x0004
 
+# Magic extra info tag identifying keystrokes synthesized by BinaryReceptor ("BINR")
+INJECTOR_EXTRA_INFO = 0x42494E52
+
 VK_BACK = 0x08
 VK_TAB = 0x09
 VK_RETURN = 0x0D
@@ -124,9 +127,13 @@ if os.name == "nt":
 
 
 def win32_get_clipboard_text() -> str:
-    """Retrieve UTF-16 text from Windows clipboard natively."""
+    """Retrieve UTF-16 text from Windows clipboard natively with pyperclip fallback."""
     if not user32 or not kernel32:
-        return ""
+        try:
+            import pyperclip
+            return pyperclip.paste()
+        except Exception:
+            return ""
     text = ""
     for _ in range(5):
         if user32.OpenClipboard(None):
@@ -143,31 +150,48 @@ def win32_get_clipboard_text() -> str:
                 user32.CloseClipboard()
             break
         time.sleep(0.01)
+
+    if not text:
+        try:
+            import pyperclip
+            text = pyperclip.paste()
+        except Exception:
+            pass
+
     return text
 
 
 def win32_set_clipboard_text(text: str) -> bool:
-    """Set UTF-16 text to Windows clipboard natively."""
-    if not user32 or not kernel32:
-        return False
-    raw = (text + "\0").encode("utf-16-le")
-    for _ in range(5):
-        if user32.OpenClipboard(None):
-            try:
-                user32.EmptyClipboard()
-                h_mem = kernel32.GlobalAlloc(GMEM_MOVEABLE, len(raw))
-                if h_mem:
-                    ptr = kernel32.GlobalLock(h_mem)
-                    if ptr:
-                        ctypes.memmove(ptr, raw, len(raw))
-                        kernel32.GlobalUnlock(h_mem)
-                        user32.SetClipboardData(CF_UNICODETEXT, h_mem)
-                        return True
-            finally:
-                user32.CloseClipboard()
-            break
-        time.sleep(0.01)
-    return False
+    """Set UTF-16 text to Windows clipboard natively with pyperclip fallback."""
+    success = False
+    if user32 and kernel32:
+        raw = (text + "\0").encode("utf-16-le")
+        for _ in range(5):
+            if user32.OpenClipboard(None):
+                try:
+                    user32.EmptyClipboard()
+                    h_mem = kernel32.GlobalAlloc(GMEM_MOVEABLE, len(raw))
+                    if h_mem:
+                        ptr = kernel32.GlobalLock(h_mem)
+                        if ptr:
+                            ctypes.memmove(ptr, raw, len(raw))
+                            kernel32.GlobalUnlock(h_mem)
+                            user32.SetClipboardData(CF_UNICODETEXT, h_mem)
+                            success = True
+                finally:
+                    user32.CloseClipboard()
+                break
+            time.sleep(0.01)
+
+    # Always ensure fallback or synchronization with pyperclip
+    try:
+        import pyperclip
+        pyperclip.copy(text)
+        success = True
+    except Exception:
+        pass
+
+    return success
 
 
 class KeyInjector:
@@ -186,7 +210,7 @@ class KeyInjector:
         return user32.SendInput(len(events), ctypes.byref(arr), ctypes.sizeof(INPUT))
 
     @staticmethod
-    def make_vk_event(vk_code: int, key_up: bool = False) -> INPUT:
+    def make_vk_event(vk_code: int, key_up: bool = False, extra_info: int = INJECTOR_EXTRA_INFO) -> INPUT:
         dw_flags = KEYEVENTF_KEYUP if key_up else 0
         return INPUT(
             type=INPUT_KEYBOARD,
@@ -196,13 +220,18 @@ class KeyInjector:
                     wScan=0,
                     dwFlags=dw_flags,
                     time=0,
-                    dwExtraInfo=0,
+                    dwExtraInfo=extra_info,
                 )
             ),
         )
 
     @staticmethod
-    def make_unicode_event(code_unit: int, key_up: bool = False) -> INPUT:
+    def make_unicode_event(code_unit: int, key_up: bool = False, extra_info: int = INJECTOR_EXTRA_INFO) -> INPUT:
+        """Create a SendInput Unicode event guaranteeing layout independence (Mandate 4).
+
+        Sets wVk = 0 and wScan = code_unit with KEYEVENTF_UNICODE (0x0004).
+        This guarantees complete bypass of the active Windows keyboard layout (e.g. Persian/Farsi).
+        """
         dw_flags = KEYEVENTF_UNICODE
         if key_up:
             dw_flags |= KEYEVENTF_KEYUP
@@ -214,7 +243,7 @@ class KeyInjector:
                     wScan=code_unit,
                     dwFlags=dw_flags,
                     time=0,
-                    dwExtraInfo=0,
+                    dwExtraInfo=extra_info,
                 )
             ),
         )

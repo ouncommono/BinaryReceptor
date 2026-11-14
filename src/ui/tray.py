@@ -1,4 +1,4 @@
-"""System Tray controller for BinaryReceptor v3.3.0 using native PySide6 QSystemTrayIcon."""
+"""System Tray controller for BinaryReceptor v3.4.0 using native PySide6 QSystemTrayIcon."""
 from __future__ import annotations
 
 import io
