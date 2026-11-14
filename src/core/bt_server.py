@@ -1,4 +1,4 @@
-"""Native Windows Bluetooth RFCOMM Server and SDP Advertiser for BinaryReceptor v3.5.0.
+"""Native Windows Bluetooth RFCOMM Server and SDP Advertiser for BinaryReceptor v3.6.0.
 
 Completely replaces the legacy hxBluetooth C#/Haxe build chain with native Win32 Winsock
 bindings (AF_BTH, SOCK_STREAM, BTPROTO_RFCOMM) and ws2_32.WSASetServiceW SDP registration.
@@ -7,17 +7,25 @@ Advertises the exact UUID required by BinaryEye (8a8478c9-2ca8-404b-a0de-101f34a
 from __future__ import annotations
 
 import ctypes
+import json
 import logging
 import os
 import socket
 import sys
 import threading
 import time
+import urllib.parse
 import uuid
 from ctypes import wintypes
 from typing import Callable, Any
 
-from src.core.http_server import ScanPayload
+from src.core.http_server import (
+    ScanPayload,
+    CONTENT_PARAM_KEYS,
+    FORMAT_PARAM_KEYS,
+    RAW_PARAM_KEYS,
+    SCAN_ID_KEYS,
+)
 from src.version import DEFAULT_BT_UUID, DEFAULT_BT_NAME
 
 logger = logging.getLogger("BinaryReceptor.Bluetooth")
@@ -25,6 +33,7 @@ logger = logging.getLogger("BinaryReceptor.Bluetooth")
 # Windows Sockets Bluetooth Constants
 AF_BTH = 32
 BTPROTO_RFCOMM = 3
+BT_PORT_ANY = -1
 NS_BTH = 16
 RNRSERVICE_REGISTER = 0
 RNRSERVICE_DEREGISTER = 1
@@ -52,6 +61,7 @@ class GUID(ctypes.Structure):
 
 
 class SOCKADDR_BTH(ctypes.Structure):
+    _pack_ = 1
     _fields_ = [
         ("addressFamily", ctypes.c_ushort),
         ("btAddr", ctypes.c_ulonglong),
@@ -124,7 +134,7 @@ def get_local_bt_address() -> str:
         return "N/A"
     try:
         s = socket.socket(AF_BTH, socket.SOCK_STREAM, BTPROTO_RFCOMM)
-        s.bind(("00:00:00:00:00:00", 0))
+        s.bind(("00:00:00:00:00:00", BT_PORT_ANY))
         addr, _ = s.getsockname()
         s.close()
         return addr or "N/A"
@@ -188,6 +198,13 @@ class BluetoothServerController:
         try:
             self._guid = GUID.from_uuid_str(self.service_uuid)
 
+            # Retrieve allocated RFCOMM port from socket
+            allocated_port = 0
+            try:
+                _, allocated_port = sock.getsockname()
+            except Exception:
+                pass
+
             self._sockaddr = SOCKADDR_BTH()
             sa_len = ctypes.c_int(ctypes.sizeof(self._sockaddr))
             ret = ws2_32.getsockname(
@@ -199,13 +216,17 @@ class BluetoothServerController:
                 logger.error("ws2_32.getsockname failed for BT socket: %s", ctypes.get_last_error())
                 return False
 
+            if (self._sockaddr.port == 0 or self._sockaddr.port is None) and allocated_port:
+                self._sockaddr.port = int(allocated_port)
+
+            self._sockaddr.addressFamily = AF_BTH
             self._sockaddr.serviceClassId = self._guid
 
             self._csaddr = CSADDR_INFO()
             self._csaddr.LocalAddr.lpSockaddr = ctypes.pointer(self._sockaddr)
             self._csaddr.LocalAddr.iSockaddrLength = ctypes.sizeof(self._sockaddr)
-            self._csaddr.RemoteAddr.lpSockaddr = ctypes.pointer(self._sockaddr)
-            self._csaddr.RemoteAddr.iSockaddrLength = ctypes.sizeof(self._sockaddr)
+            self._csaddr.RemoteAddr.lpSockaddr = None
+            self._csaddr.RemoteAddr.iSockaddrLength = 0
             self._csaddr.iSocketType = socket.SOCK_STREAM
             self._csaddr.iProtocol = BTPROTO_RFCOMM
 
@@ -223,8 +244,14 @@ class BluetoothServerController:
 
             res = ws2_32.WSASetServiceW(ctypes.byref(self._queryset), RNRSERVICE_REGISTER, 0)
             if res != 0:
-                logger.error("WSASetServiceW registration failed: %s", ctypes.get_last_error())
+                err = ctypes.get_last_error()
+                logger.error("WSASetServiceW registration failed: %s", err)
                 return False
+            logger.info(
+                "SDP service registered successfully: UUID=%s, Port=%s",
+                self.service_uuid,
+                self._sockaddr.port,
+            )
             return True
         except Exception as e:
             logger.exception("Exception during SDP registration: %s", e)
@@ -255,8 +282,8 @@ class BluetoothServerController:
 
         try:
             srv = socket.socket(AF_BTH, socket.SOCK_STREAM, BTPROTO_RFCOMM)
-            srv.bind(("00:00:00:00:00:00", 0))
-            srv.listen(2)
+            srv.bind(("00:00:00:00:00:00", BT_PORT_ANY))
+            srv.listen(5)
             self._server_sock = srv
         except OSError as e:
             msg = f"Bluetooth adapter not found or disabled: {e}"
@@ -317,10 +344,76 @@ class BluetoothServerController:
         if not self._stop_requested.is_set():
             self._set_status("Stopped")
 
+    def _dispatch_parsed_scan(self, raw_text: str, client_addr: str) -> None:
+        """Parse raw Bluetooth stream payload (plain text, JSON, or key-value) and dispatch."""
+        clean = (raw_text or "").strip()
+        if not clean:
+            return
+
+        if self.mode_checker and self.mode_checker().strip().lower() == "http":
+            logger.info("Dropping Bluetooth scan: Mode is HTTP Only")
+            return
+
+        content = clean
+        fmt = ""
+        raw_b64 = ""
+        scan_id = None
+
+        # Check for JSON payload (BinaryEye JSON forwarding)
+        if clean.startswith("{") and clean.endswith("}"):
+            try:
+                data = json.loads(clean)
+                if isinstance(data, dict):
+                    for k, v in data.items():
+                        lk = k.lower()
+                        if lk in CONTENT_PARAM_KEYS and isinstance(v, (str, int, float)):
+                            content = str(v)
+                        elif lk in FORMAT_PARAM_KEYS and isinstance(v, str):
+                            fmt = v
+                        elif lk in RAW_PARAM_KEYS and isinstance(v, str):
+                            raw_b64 = v
+                        elif lk in SCAN_ID_KEYS and isinstance(v, (str, int)):
+                            scan_id = str(v)
+            except Exception:
+                pass
+        elif ("=" in clean) and (clean.startswith("result=") or clean.startswith("content=") or clean.startswith("?")):
+            try:
+                q_str = clean.lstrip("?")
+                qs_dict = urllib.parse.parse_qs(q_str, keep_blank_values=False)
+                for k, v_list in qs_dict.items():
+                    if not v_list:
+                        continue
+                    lk = k.lower()
+                    val = v_list[0]
+                    if lk in CONTENT_PARAM_KEYS:
+                        content = val
+                    elif lk in FORMAT_PARAM_KEYS:
+                        fmt = val
+                    elif lk in RAW_PARAM_KEYS:
+                        raw_b64 = val
+                    elif lk in SCAN_ID_KEYS:
+                        scan_id = val
+            except Exception:
+                pass
+
+        payload = ScanPayload(
+            content=content,
+            format=fmt,
+            raw=raw_b64,
+            scan_id=scan_id,
+            source="Bluetooth",
+            client_address=client_addr,
+        )
+        try:
+            self.on_scan(payload)
+        except Exception:
+            logger.exception("Error in BT on_scan callback")
+
     def _handle_client_stream(self, client: socket.socket, client_addr: str) -> None:
-        """Read and buffer stream chunks, dispatching scans on delimiter."""
+        """Read and buffer stream chunks, dispatching scans on delimiter or idle timeout."""
         buffer = ""
-        client.settimeout(2.0)
+        last_recv_time = time.monotonic()
+        client.settimeout(0.3)
 
         while not self._stop_requested.is_set():
             try:
@@ -329,12 +422,12 @@ class BluetoothServerController:
                     logger.info("Bluetooth client disconnected: %s", client_addr)
                     break
 
+                last_recv_time = time.monotonic()
                 text = chunk_bytes.decode("utf-8", errors="replace")
                 buffer += text
 
                 # Handle line delimiters
                 while "\n" in buffer or "\r" in buffer:
-                    # Normalize CRLF
                     if "\r\n" in buffer:
                         line, buffer = buffer.split("\r\n", 1)
                     elif "\n" in buffer:
@@ -348,41 +441,24 @@ class BluetoothServerController:
                     if clean_line:
                         if self._stop_requested.is_set():
                             break
-                        if self.mode_checker and self.mode_checker().strip().lower() == "http":
-                            logger.info("Dropping Bluetooth scan: Mode is HTTP Only")
-                            continue
-
-                        payload = ScanPayload(
-                            content=clean_line,
-                            format="",
-                            source="Bluetooth",
-                            client_address=client_addr,
-                        )
-                        try:
-                            self.on_scan(payload)
-                        except Exception:
-                            logger.exception("Error in BT on_scan callback")
+                        self._dispatch_parsed_scan(clean_line, client_addr)
 
             except socket.timeout:
+                # If buffer has pending content without a delimiter and has been idle > 300ms, flush it!
+                if buffer.strip() and (time.monotonic() - last_recv_time) >= 0.3:
+                    to_dispatch = buffer.strip()
+                    buffer = ""
+                    self._dispatch_parsed_scan(to_dispatch, client_addr)
                 continue
-            except (ConnectionResetError, ConnectionAbortedError, OSError):
+            except (ConnectionResetError, ConnectionAbortedError, OSError) as e:
+                logger.info("Bluetooth client connection closed: %s (%s)", client_addr, e)
                 break
 
         # Process any trailing content in buffer upon disconnect
         if not self._stop_requested.is_set():
-            if not (self.mode_checker and self.mode_checker().strip().lower() == "http"):
-                clean_trailing = buffer.strip()
-                if clean_trailing:
-                    payload = ScanPayload(
-                        content=clean_trailing,
-                        format="",
-                        source="Bluetooth",
-                        client_address=client_addr,
-                    )
-                    try:
-                        self.on_scan(payload)
-                    except Exception:
-                        pass
+            clean_trailing = buffer.strip()
+            if clean_trailing:
+                self._dispatch_parsed_scan(clean_trailing, client_addr)
 
         try:
             client.close()

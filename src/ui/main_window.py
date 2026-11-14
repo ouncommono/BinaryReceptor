@@ -1,4 +1,4 @@
-"""World-class bilingual (Persian RTL & English LTR) dashboard for BinaryReceptor v3.5.0."""
+"""World-class bilingual (Persian RTL & English LTR) dashboard for BinaryReceptor v3.6.0."""
 from __future__ import annotations
 
 import csv
@@ -112,7 +112,7 @@ class MainWindowSignals(QObject):
 
 
 class MainWindow(QMainWindow):
-    """Bilingual desktop companion server GUI for BinaryEye v3.5.0."""
+    """Bilingual desktop companion server GUI for BinaryEye v3.6.0."""
 
     def __init__(self, config_manager: ConfigManager) -> None:
         super().__init__()
@@ -1476,11 +1476,11 @@ class MainWindow(QMainWindow):
             mode = (self.config.mode or "both").strip().lower()
 
             # In Hybrid (both) mode (or whenever Duplicate Protection is enabled):
-            # if elapsed_ms < cooldown_ms AND (source != last_scan_source OR cleaned_text == last_scan_text),
+            # if elapsed_ms < cooldown_ms AND canonical_content == last_scan_text,
             # immediately suppress the second scan, increment the Duplicates Blocked counter, log it as suppressed,
             # and return before executing any typing or clipboard output.
             if dedup_enabled or mode == "both":
-                if elapsed_ms < cooldown_ms and (payload.source != self._last_scan_source or canonical_content == self._last_scan_text):
+                if elapsed_ms < cooldown_ms and canonical_content == self._last_scan_text:
                     self.cnt_dedup += 1
                     self.signals.stats_updated.emit()
                     self.signals.scan_received.emit(

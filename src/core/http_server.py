@@ -1,4 +1,4 @@
-"""Universal fault-tolerant HTTP companion server for BinaryEye in BinaryReceptor v3.5.0.
+"""Universal fault-tolerant HTTP companion server for BinaryEye in BinaryReceptor v3.6.0.
 
 Accepts requests on ANY path (/*) and ANY HTTP method (GET, POST, PUT, OPTIONS).
 Guarantees sub-millisecond HTTP 200 OK responses to respect BinaryEye's strict timeouts,
