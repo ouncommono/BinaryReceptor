@@ -1,4 +1,4 @@
-"""Universal fault-tolerant HTTP companion server for BinaryEye in BinaryReceptor v3.2.0.
+"""Universal fault-tolerant HTTP companion server for BinaryEye in BinaryReceptor v3.3.0.
 
 Accepts requests on ANY path (/*) and ANY HTTP method (GET, POST, PUT, OPTIONS).
 Guarantees sub-millisecond HTTP 200 OK responses to respect BinaryEye's strict timeouts,
@@ -305,11 +305,16 @@ class BinaryReceptorHTTPServer(ThreadingHTTPServer):
         self,
         server_address: tuple[str, int],
         on_scan: Callable[[ScanPayload], None],
+        mode_checker: Callable[[], str] | None = None,
     ) -> None:
         self.on_scan = on_scan
+        self.mode_checker = mode_checker
         super().__init__(server_address, BinaryReceptorHTTPHandler)
 
     def dispatch_scan(self, payload: ScanPayload) -> None:
+        if self.mode_checker and self.mode_checker().strip().lower() == "bluetooth":
+            logger.info("Dropping HTTP scan because mode is Bluetooth Only")
+            return
         try:
             self.on_scan(payload)
         except Exception:
@@ -324,10 +329,12 @@ class HttpServerController:
         host: str = "0.0.0.0",
         port: int = 24234,
         on_scan: Callable[[ScanPayload], None] | None = None,
+        mode_checker: Callable[[], str] | None = None,
     ) -> None:
         self.host = host
         self.port = port
         self.on_scan = on_scan or (lambda p: None)
+        self.mode_checker = mode_checker
 
         self._server: BinaryReceptorHTTPServer | None = None
         self._thread: Thread | None = None
@@ -352,6 +359,7 @@ class HttpServerController:
             self._server = BinaryReceptorHTTPServer(
                 (self.host, self.port),
                 on_scan=self.on_scan,
+                mode_checker=self.mode_checker,
             )
         except OSError as e:
             self._last_error = f"Cannot bind to {self.host}:{self.port} - {e}"

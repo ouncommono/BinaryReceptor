@@ -1,9 +1,9 @@
 """Version and metadata constants for BinaryReceptor."""
 
-__version__ = "3.2.0"
+__version__ = "3.3.0"
 APP_NAME = "BinaryReceptor"
-APP_DISPLAY_NAME = "BinaryReceptor v3.2.0"
-APP_ID = "BinaryReceptor.3.2.0"
+APP_DISPLAY_NAME = "BinaryReceptor v3.3.0"
+APP_ID = "BinaryReceptor.3.3.0"
 
 # Networking defaults
 DEFAULT_HTTP_HOST = "0.0.0.0"

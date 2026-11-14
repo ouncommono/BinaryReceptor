@@ -1,4 +1,4 @@
-"""Native Windows Bluetooth RFCOMM Server and SDP Advertiser for BinaryReceptor v3.0.0.
+"""Native Windows Bluetooth RFCOMM Server and SDP Advertiser for BinaryReceptor v3.3.0.
 
 Completely replaces the legacy hxBluetooth C#/Haxe build chain with native Win32 Winsock
 bindings (AF_BTH, SOCK_STREAM, BTPROTO_RFCOMM) and ws2_32.WSASetServiceW SDP registration.
@@ -141,11 +141,13 @@ class BluetoothServerController:
         service_name: str = DEFAULT_BT_NAME,
         on_scan: Callable[[ScanPayload], None] | None = None,
         on_status_change: Callable[[str], None] | None = None,
+        mode_checker: Callable[[], str] | None = None,
     ) -> None:
         self.service_uuid = service_uuid
         self.service_name = service_name
         self.on_scan = on_scan or (lambda p: None)
         self.on_status_change = on_status_change or (lambda s: None)
+        self.mode_checker = mode_checker
 
         self._server_sock: socket.socket | None = None
         self._is_running = threading.Event()
@@ -344,6 +346,12 @@ class BluetoothServerController:
 
                     clean_line = line.strip()
                     if clean_line:
+                        if self._stop_requested.is_set():
+                            break
+                        if self.mode_checker and self.mode_checker().strip().lower() == "http":
+                            logger.info("Dropping Bluetooth scan: Mode is HTTP Only")
+                            continue
+
                         payload = ScanPayload(
                             content=clean_line,
                             format="",
@@ -361,18 +369,20 @@ class BluetoothServerController:
                 break
 
         # Process any trailing content in buffer upon disconnect
-        clean_trailing = buffer.strip()
-        if clean_trailing:
-            payload = ScanPayload(
-                content=clean_trailing,
-                format="",
-                source="Bluetooth",
-                client_address=client_addr,
-            )
-            try:
-                self.on_scan(payload)
-            except Exception:
-                pass
+        if not self._stop_requested.is_set():
+            if not (self.mode_checker and self.mode_checker().strip().lower() == "http"):
+                clean_trailing = buffer.strip()
+                if clean_trailing:
+                    payload = ScanPayload(
+                        content=clean_trailing,
+                        format="",
+                        source="Bluetooth",
+                        client_address=client_addr,
+                    )
+                    try:
+                        self.on_scan(payload)
+                    except Exception:
+                        pass
 
         try:
             client.close()

@@ -30,10 +30,10 @@ from src.ui.i18n import TRANSLATIONS, tr
 
 
 def test_v320_version_and_metadata():
-    """Verify version 3.2.0 metadata across all exports."""
-    assert __version__ == "3.2.0"
-    assert APP_ID == "BinaryReceptor.3.2.0"
-    assert "v3.2.0" in APP_DISPLAY_NAME
+    """Verify version 3.3.0 metadata across all exports."""
+    assert __version__ == "3.3.0"
+    assert APP_ID == "BinaryReceptor.3.3.0"
+    assert "v3.3.0" in APP_DISPLAY_NAME
 
 
 def test_auto_start_disabled_by_default(tmp_path):

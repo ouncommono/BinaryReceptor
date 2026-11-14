@@ -1,11 +1,11 @@
-# BinaryReceptor v3.2.0
+# BinaryReceptor v3.3.0
 
 > **The ultra-lightweight, zero-bug, high-performance desktop companion server for [BinaryEye](https://github.com/markusfisch/BinaryEye) on Android.**  
 > Native Windows architecture with Bluetooth RFCOMM, HTTP webhook listener, SendInput keyboard wedge, and visual token builder.
 
 [![Python](https://img.shields.io/badge/Python-3.11%20%7C%203.12%20%7C%203.14-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%2F%2011-0078D6?logo=windows&logoColor=white)](https://microsoft.com/windows)
-[![Release](https://img.shields.io/badge/Release-v3.2.0-10B981)](https://github.com/ouncommono/BinaryReceptor/releases)
+[![Release](https://img.shields.io/badge/Release-v3.3.0-10B981)](https://github.com/ouncommono/BinaryReceptor/releases)
 [![Build Status](https://github.com/ouncommono/BinaryReceptor/actions/workflows/build_release.yml/badge.svg)](https://github.com/ouncommono/BinaryReceptor/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
@@ -19,12 +19,10 @@
 
 # 🇬🇧 English Documentation
 
-## Executive Overview
-**BinaryReceptor v3.2.0** is the official modern desktop companion server for the Android barcode scanner [BinaryEye](https://github.com/markusfisch/BinaryEye). It transforms any Android smartphone running BinaryEye into an industrial-grade wireless barcode scanner for Windows PCs.
+## Executive Overview & Architecture
+**BinaryReceptor v3.3.0** is the official modern desktop companion server for the Android barcode scanner [BinaryEye](https://github.com/markusfisch/BinaryEye). It transforms any Android smartphone running BinaryEye into an industrial-grade wireless barcode scanner for Windows PCs.
 
-Whenever a 1D barcode (EAN-13, Code 128, UPC-A, Code 39) or 2D code (QR Code, DataMatrix, Aztec, PDF417) is scanned on mobile, BinaryReceptor captures the payload instantaneously over **Bluetooth RFCOMM**, **Wi-Fi / LAN HTTP**, or **both simultaneously in Hybrid mode**. The scanned data is wedged directly into the active Windows application (Excel, ERP systems, accounting software, Point of Sale, web browsers, Notepad) using low-level Win32 `SendInput` Unicode keystrokes or instant clipboard paste (`Ctrl+V`).
-
-BinaryReceptor is engineered in modern Python and native Win32 APIs, compiling into a standalone, portable Windows `.exe` (`BinaryReceptor.exe`) with minimal memory and disk footprint.
+Whenever a 1D linear barcode (EAN-13, Code 128, UPC-A, Code 39) or 2D matrix code (QR Code, DataMatrix, Aztec, PDF417) is scanned on mobile, BinaryReceptor captures the payload instantaneously over **Bluetooth RFCOMM**, **Wi-Fi / LAN HTTP**, or **both simultaneously in Hybrid mode**. The scanned data is wedged directly into the active Windows application (Excel, ERP systems, accounting software, Point of Sale, web browsers, Notepad) using low-level Win32 `SendInput` Unicode keystrokes or instant clipboard paste (`Ctrl+V`).
 
 ```
  +-------------------------+              +-----------------------------------+
@@ -38,8 +36,8 @@ BinaryReceptor is engineered in modern Python and native Win32 APIs, compiling i
  |  (POST / GET / JSON)    |  Wi-Fi / LAN |                 |                 |
  +-------------------------+              +-----------------+-----------------+
                                                             |
-                                             Atomic Deduplication Engine
-                                             (CRLF Normalization & Sliding Window)
+                                             Time-Interval Cooldown Gate
+                                             (Thread-Safe Deduplication Lock)
                                                             |
                                                             v
                                              Prefix / Suffix Token Compiler
@@ -52,21 +50,21 @@ BinaryReceptor is engineered in modern Python and native Win32 APIs, compiling i
 
 ---
 
-## ⚡ Full Features List
+## ⚡ Key Architectural Features
 
 | Capability | Description |
 | :--- | :--- |
 | **Bluetooth RFCOMM Server** | Native Windows `AF_BTH` Winsock RFCOMM listener with Win32 SDP service UUID advertisement (`8a8478c9-2ca8-404b-a0de-101f34ab71ae`). Zero external drivers or virtual COM ports required. |
 | **Universal HTTP Server** | Multi-threaded HTTP listener supporting all 4 markusfisch/BinaryEye forwarding options (POST JSON, POST Form, GET Query, GET Append, GET Custom Template) with sub-20ms instant 200 OK responses. |
-| **Simultaneous Hybrid Mode** | Listen on both Bluetooth and Wi-Fi simultaneously with seamless automatic failover if one transport disconnects. |
-| **Atomic Deduplication** | Thread-safe deduplication engine with canonical CRLF normalization preventing duplicate scans across simultaneous transports. |
+| **Strict Mode Isolation** | When HTTP Server Only is selected, Bluetooth sockets and threads are forcibly terminated and Bluetooth scans are dropped. When Bluetooth Only is selected, HTTP listener is stopped and HTTP scans are dropped. |
+| **Time-Interval Cooldown Gate** | High-performance, thread-safe cooldown gate preventing duplicate scans across simultaneous transports (Hybrid mode) and client retransmissions without hash table overhead. |
+| **Unified Output Routing** | Strict unified output pipeline ensuring `Copy to clipboard only` never triggers keystrokes for either Bluetooth or HTTP scans. |
 | **Visual Prefix / Suffix Builder** | Scrollable, responsive keystroke builder with interactive chip buttons (`{ENTER}`, `{TAB}`, `{SPACE}`, `{DATE}`, `{TIME}`, `{BACKSPACE}`, `{ESC}`, `{DOWN}`). |
 | **Keyboard Wedge & Clipboard** | Low-level Win32 `SendInput` Unicode keystroke emulation, rapid clipboard paste (`Ctrl+V`), copy-only mode, and silent log-only mode. |
 | **Audio Scanner Chime** | In-memory 16-bit PCM WAV synthesized dual-tone beep (1800Hz → 2400Hz) with zero external audio assets or DLLs. |
 | **QR Connection Assistant** | Dynamic QR code generator displaying active network IPs, request mode selector, and 1-click URL copying. |
 | **Standalone Barcode Generator** | Encode arbitrary text into 11 barcode symbologies (QR Code, Code 128, DataMatrix, EAN-13, Aztec, PDF417) containing only raw text. |
-| **Compact Status Header** | Sleek single-row status strip with real-time health pills and live scan counters taking only 10%–14% of window height. |
-| **System Tray & Background Mode**| Minimize to notification area on launch or close, two-way tray status sync, and Windows balloon/toast notifications. |
+| **Dedicated Scans Statistics Header**| Live KPI metrics (Total Scans, Bluetooth Scans, HTTP Scans, Duplicates Blocked) integrated cleanly into the top header of the Live Scan Activity page. |
 | **Bilingual RTL / LTR UI** | 100% complete Persian (فارسی - RTL) and English (LTR) localization with exact dictionary parity across all dropdowns, chips, and dialogs. |
 | **Live Hot-Reloading settings.ini** | INI file located deterministically alongside `BinaryReceptor.exe` that reloads configuration changes automatically within 1 second. |
 
@@ -75,7 +73,7 @@ BinaryReceptor is engineered in modern Python and native Win32 APIs, compiling i
 ## 🚀 Quick Start Guide
 
 ### Option 1: Standalone Executable (Recommended)
-1. Download `BinaryReceptor-v3.2.0-win64.zip` from [GitHub Releases](https://github.com/ouncommono/BinaryReceptor/releases/latest).
+1. Download `BinaryReceptor-v3.3.0-win64.zip` from [GitHub Releases](https://github.com/ouncommono/BinaryReceptor/releases/latest).
 2. Extract the archive to any folder on your Windows PC.
 3. Launch `BinaryReceptor.exe`.
 4. Click **Start Server** (or enable auto-start in Settings).
@@ -111,25 +109,26 @@ python run.py
 ### Method 2: Wi-Fi / LAN HTTP Forwarding
 In BinaryEye, navigate to **Settings → Forwarding** and enable **Forward scans**. BinaryReceptor natively supports all 4 request formats:
 
-#### Mode 1: POST - JSON / Form (Recommended)
-- **BinaryEye Request Type**: `POST application/json` or `POST application/x-www-form-urlencoded`
+#### Mode 1: POST application/json (Recommended)
+- **BinaryEye Request Type**: `POST application/json`
 - **Configured URL in Phone**: `http://<YOUR_PC_IP>:24234/`
-- BinaryReceptor parses JSON keys (`content`, `format`, `raw`, `scanId`) or form url-encoded bodies instantly.
+- BinaryReceptor parses JSON keys (`content`, `format`, `raw`, `scanId`) with instant sub-20ms 200 OK responses.
 
-#### Mode 2: GET - Full Query String
+#### Mode 2: POST application/x-www-form-urlencoded
+- **BinaryEye Request Type**: `POST application/x-www-form-urlencoded`
+- **Configured URL in Phone**: `http://<YOUR_PC_IP>:24234/`
+- BinaryEye sends form urlencoded body with `content`, `format`, `raw`.
+
+#### Mode 3: GET with full query string
 - **BinaryEye Request Type**: `GET with full query string`
 - **Configured URL in Phone**: `http://<YOUR_PC_IP>:24234/`
 - BinaryEye automatically appends `?content=<BARCODE>&raw=<HEX>&format=<FORMAT>`.
 
-#### Mode 3: GET - Simply Add Content (Prefix Query)
+#### Mode 4: GET and simply add content
 - **BinaryEye Request Type**: `GET and simply add content`
 - **Configured URL in Phone**: `http://<YOUR_PC_IP>:24234/?content=` (or `http://<YOUR_PC_IP>:24234/`)
 - BinaryEye appends the scanned content directly to the end of the URL.
-
-#### Mode 4: GET - Custom Template
-- **BinaryEye Request Type**: `GET with custom URL`
-- **Configured URL in Phone**: `http://<YOUR_PC_IP>:24234/?content={RESULT}&format={FORMAT}&raw={RESULT_BYTES}`
-- BinaryEye substitutes the template variables `{RESULT}`, `{FORMAT}`, and `{RESULT_BYTES}` dynamically.
+- Optional Template: `http://<YOUR_PC_IP>:24234/?content={RESULT}&format={FORMAT}&raw={RESULT_BYTES}`
 
 ---
 
@@ -165,12 +164,23 @@ The `settings.ini` configuration file resides alongside `BinaryReceptor.exe` and
 | `[general]` | `tray_notifications` | `true` | Show Windows tray notification on scan. |
 | `[network]` | `http_host` | `0.0.0.0` | IP to bind HTTP listener (`0.0.0.0` binds all interfaces). |
 | `[network]` | `http_port` | `24234` | Port for BinaryEye forwarding requests. |
-| `[keystroke]` | `output_mode` | `type` | Wedge mode: `type` (SendInput), `paste` (Ctrl+V), `copy_only`, `log_only`. |
-| `[keystroke]` | `inter_key_delay_ms` | `2` | Micro-delay between keystrokes to ensure ERP compatibility. |
-| `[keystroke]` | `prefix` | `""` | Keys/tokens typed before scanned barcode. |
-| `[keystroke]` | `suffix` | `{ENTER}` | Keys/tokens typed after scanned barcode. |
-| `[filtering]` | `deduplication_enabled` | `true` | Prevent duplicate scans within the sliding time window. |
-| `[filtering]` | `deduplication_window_ms`| `1500` | Duplicate rejection threshold in milliseconds. |
+| `[bluetooth]` | `bt_enabled` | `true` | Enable native Windows Bluetooth RFCOMM listener. |
+| `[bluetooth]` | `service_uuid` | `8a8478c9-...` | BinaryEye standard Bluetooth Service SDP UUID. |
+| `[wedge]` | `output_mode` | `type` | Wedge mode: `type` (SendInput), `paste` (Ctrl+V), `copy_only`, `log_only`. |
+| `[wedge]` | `inter_key_delay_ms` | `0` | Micro-delay between keystrokes to ensure ERP compatibility. |
+| `[wedge]` | `prefix` | `""` | Keys/tokens typed before scanned barcode. |
+| `[wedge]` | `suffix` | `{ENTER}` | Keys/tokens typed after scanned barcode. |
+| `[deduplication]` | `deduplication_enabled` | `true` | Prevent duplicate scans within the cooldown window. |
+| `[deduplication]` | `deduplication_window_ms`| `1500` | Duplicate suppression cooldown interval in milliseconds. |
+
+---
+
+## 🔧 Troubleshooting & FAQ
+
+- **Port Conflict (Error binding :24234)**: If another application uses port 24234, change the port in Settings (e.g., 25000) and click Save Settings.
+- **Bluetooth Adapter Off**: Ensure Bluetooth is enabled in Windows Settings and that your PC has a functional Bluetooth adapter.
+- **Double-typing in Hybrid Mode**: Ensure Duplicate Protection is enabled in Settings and set the cooldown interval to 1500ms or 2000ms.
+- **Scans Not Typing in Target Program**: Run BinaryReceptor with standard user privileges matching your target application (or run as Administrator if typing into elevated windows).
 
 ---
 
@@ -184,10 +194,9 @@ pip install -r requirements-build.txt
 
 # Run automated build script
 python build.py
-# Or run: .\build.bat
 ```
 
-The resulting binary `dist/BinaryReceptor.exe` and default `dist/settings.ini` are generated with aggressive DLL stripping, resulting in a lightweight, single-file distribution package.
+The build script compiles a rock-solid single-file executable `dist/BinaryReceptor.exe` without UPX corruption, copies `settings.ini`, and executes an automated post-build smoke test (`BinaryReceptor.exe --self-test`).
 
 ---
 
@@ -201,50 +210,94 @@ pytest -v tests/
 
 ---
 
-# 🇮🇷 راهنمای جامع فارسی (Persian Documentation)
+## 📜 License & Credits
 
-## معرفی و معماری نرم‌افزار
-**باینری‌رسپتور نسخه ۳.۲.۰ (BinaryReceptor v3.2.0)** نرم‌افزار سرور همراه و واسط صفحه‌کلید (Keyboard Wedge) برای اپلیکیشن محبوب و متن‌باز [BinaryEye](https://github.com/markusfisch/BinaryEye) در گوشی‌های اندروید است. این برنامه گوشی هوشمند شما را به یک بارکدخوان بی‌سیم صنعتی و فوق‌سریع برای کامپیوترهای ویندوز تبدیل می‌کند.
-
-با اسکن هرگونه بارکد میله‌ای (EAN-13، Code 128، UPC) یا کدهای دوبعدی (QR Code، DataMatrix، Aztec) با دوربین گوشی، محتوای اسکن‌شده به صورت آنی از طریق **بلوتوث (RFCOMM)** یا **شبکه وای‌فای (HTTP)** و یا **هر دو به صورت همزمان (حالت هیبریدی)** به کامپیوتر منتقل شده و مستقیماً در نرم‌افزار فعال ویندوز (اکسل، نرم‌افزارهای حسابداری، انبارداری، مرورگر، نوت‌پد) تایپ می‌شود.
+This project is licensed under the [MIT License](LICENSE).  
+Architecture, modernization, and version 3.3.0 engineering by **ouncommono**.  
+Original upstream repository: [KamaleiZestri/BinaryReceptor](https://github.com/KamaleiZestri/BinaryReceptor).  
+Android Scanner Client: [BinaryEye](https://github.com/markusfisch/BinaryEye) by Markus Fisch.
 
 ---
 
-## 🌟 قابلیت‌ها و مزایای برجسته
+# 🇮🇷 راهنمای جامع فارسی (Persian Documentation)
 
-- **پشتیبانی کامل از بلوتوث و شبکه:** پشتیبانی همزمان از سوکت مستقیم بلوتوث RFCOMM بدون نیاز به پورت سریال مجازی، و سرور فوق‌سریع HTTP با پاسخگویی زیر ۲۰ میلی‌ثانیه.
-- **سازگاری ۱۰۰٪ با ۴ حالت ارسال BinaryEye:** پشتیبانی کامل از حالت‌های POST با ساختار JSON، فرم x-www-form-urlencoded، متد GET با رشته پرسمان کامل، افزودن مستقیم مقدار، و الگوهای سفارشی.
-- **سیستم فیلتر هوشمند ضدتکرار (Deduplication):** جلوگیری از ورود داده‌های تکراری حاصل از اسکن‌های ناخواسته همزمان از هر دو کانال شبکه و بلوتوث.
-- **سازنده بصری پیشوند و پسوند (Prefix/Suffix Builder):** رابط کاربری روان و اسکرول‌پذیر با دکمه‌های درج آسان کلیدهای اینتر، تب، فاصله، پاک کردن، تاریخ و ساعت جاری.
-- **شبیه‌سازی حرفه‌ای صفحه‌کلید و کلیپ‌بورد:** تایپ از طریق APIهای سطح پایین `SendInput` یونیکد، پیست فوری با `Ctrl+V`، و حالت فقط کپی در کلیپ‌بورد.
-- **صدای شفاف اسکنر (Audio Chime):** تولید درون‌برنامه‌ای صدای استاندارد بارکدخوان صنعتی (۱۸۰۰ تا ۲۴۰۰ هرتز) بدون نیاز به فایل‌های صوتی جانبی.
-- **نوار وضعیت فشرده و کارآمد:** طراحی مدرن تک‌سطری نوار وضعیت با نشانگرهای رنگی زنده که فضای مفید صفحه را برای پنجره اصلی آزاد نگه می‌دارد.
-- **رابط کاربری دوزبانه استاندارد:** طراحی راست‌به‌چپ (RTL) کاملاً طبیعی برای زبان فارسی و چپ‌به‌راست (LTR) برای انگلیسی با ترجمه دقیق تمامی منوها، دکمه‌ها و پنجره‌ها.
-- **فایل اجرایی پرتابل بدون نیاز به نصب:** تولید نسخه نهایی در قالب یک فایل تکی `BinaryReceptor.exe` با حجم بهینه بدون نیاز به نصب پایتون یا پیش‌نیازهای اضافه.
+## معرفی و معماری نرم‌افزار
+**باینری‌رسپتور نسخه ۳.۳.۰ (BinaryReceptor v3.3.0)** نرم‌افزار سرور همراه و واسط صفحه‌کلید (Keyboard Wedge) برای اپلیکیشن محبوب و متن‌باز [BinaryEye](https://github.com/markusfisch/BinaryEye) در گوشی‌های اندروید است. این برنامه گوشی هوشمند شما را به یک بارکدخوان بی‌سیم صنعتی و فوق‌سریع برای کامپیوترهای ویندوز تبدیل می‌کند.
+
+با اسکن هرگونه بارکد میله‌ای (EAN-13، Code 128، UPC، Code 39) یا کدهای دوبعدی (QR Code، DataMatrix، Aztec، PDF417) با دوربین گوشی، محتوای اسکن‌شده به صورت آنی از طریق **بلوتوث (RFCOMM)** یا **شبکه وای‌فای (HTTP)** و یا **هر دو به صورت همزمان (حالت ترکیبی)** به کامپیوتر منتقل شده و مستقیماً در نرم‌افزار فعال ویندوز (اکسل، نرم‌افزارهای حسابداری، انبارداری، مرورگر، نوت‌پد) تایپ می‌شود.
+
+```
+ +-------------------------+              +-----------------------------------+
+ |  Android Device         |              |  Windows PC                       |
+ |  (markusfisch/BinaryEye)|              |  (BinaryReceptor Desktop Server)  |
+ |                         |  Bluetooth   |                                   |
+ |  Camera / Scan Engine   | -----------> |  Winsock RFCOMM Server (AF_BTH)   |
+ |                         |    RFCOMM    |                 |                 |
+ |                         |              |                 v                 |
+ |  HTTP Forwarding Engine | -----------> |  Thread-Safe HTTP Listener (:24234|
+ |  (POST / GET / JSON)    |  Wi-Fi / LAN |                 |                 |
+ +-------------------------+              +-----------------+-----------------+
+                                                            |
+                                             Time-Interval Cooldown Gate
+                                             (Thread-Safe Deduplication Lock)
+                                                            |
+                                                            v
+                                             Prefix / Suffix Token Compiler
+                                             ({ENTER}, {TAB}, {DATE}, {TIME})
+                                                            |
+                                                            v
+                                             Win32 SendInput Keystroke Wedge
+                                             (Active Window: Excel, ERP, CRM)
+```
+
+---
+
+## ⚡ جدول جامع قابلیت‌ها و ویژگی‌های کلیدی
+
+| قابلیت | شرح فنی و عملکردی |
+| :--- | :--- |
+| **سرور بلوتوث RFCOMM** | شنود مستقیم سوکت‌های RFCOMM ویندوز (`AF_BTH`) با ثبت شناسه سرویس SDP اختصاصی BinaryEye (`8a8478c9-2ca8-404b-a0de-101f34ab71ae`) بدون نیاز به درایور پورت سریال مجازی. |
+| **سرور جهانی HTTP** | سرور چندنخی سریع با پشتیبانی کامل از هر ۴ حالت ارسال BinaryEye (ارسال JSON، ارسال فرم، متد GET با پرسمان، و افزودن مستقیم مقدار) با پاسخگویی زیر ۲۰ میلی‌ثانیه. |
+| **جداسازی کامل حالت‌های کاری** | در حالت فقط شبکه، پورت و ترد بلوتوث به طور کامل بسته شده و اسکن‌های بلوتوث نادیده گرفته می‌شوند. در حالت فقط بلوتوث نیز سرور شبکه متوقف شده و درخواست‌های HTTP رد می‌شوند. |
+| **فیلتر هوشمند ضدتکرار (Cooldown Gate)** | مکانیزم ضدتکرار چندنخی مبتنی بر بازه زمانی (Cooldown) که از ثبت تکراری اسکن‌های رسیده همزمان از بلوتوث و شبکه در حالت ترکیبی کاملاً جلوگیری می‌کند. |
+| **مدیریت یکپارچه حالت‌های خروجی** | هدایت یکپارچه خروجی؛ انتخاب گزینه «فقط کپی در کلیپ‌بورد» در هر دو بستر بلوتوث و شبکه، داده را فقط در حافظه کپی کرده و هرگز کلیدی تایپ نمی‌کند. |
+| **سازنده بصری پیشوند و پسوند** | رابط کاربری اسکرول‌پذیر و واکنش‌گرا با دکمه‌های درج سریع کلیدهای اینتر (`{ENTER}`)، تب (`{TAB}`)، فاصله (`{SPACE}`)، بک‌اسپیس، تاریخ و ساعت جاری. |
+| **شبیه‌ساز پیشرفته صفحه‌کلید** | تایپ یونیکد از طریق API سطح پایین Win32 `SendInput`، پیست فوری با `Ctrl+V`، حالت فقط کپی در کلیپ‌بورد و حالت ثبت لاگ بدون مداخله در صفحه‌کلید. |
+| **صدای زنگ اسکنر (Audio Chime)** | تولید درون‌برنامه‌ای صدای دوگانه استاندارد اسکنر صنعتی (۱۸۰۰ تا ۲۴۰۰ هرتز) در حافظه رم با فرمت ۱۶ بیتی PCM WAV بدون نیاز به فایل صوتی جانبی. |
+| **دستیار هوشمند اتصال و QR Code** | تولید کد QR پویا با قابلیت انتخاب کارت شبکه، انتخاب نوع درخواست BinaryEye و دکمه کپی فوری آدرس در کلیپ‌بورد. |
+| **تولیدکننده بارکد استاندارد** | تبدیل هرگونه متن دلخواه به ۱۱ فرمت بارکد استاندارد (کد QR، Code 128، DataMatrix، EAN-13، Aztec، PDF417) به صورت متن خام جهت اسکن آزمایشی. |
+| **کارت‌های اختصاصی آمار اسکن** | نمایش زنده تعداد کل اسکن‌ها، اسکن‌های بلوتوث، اسکن‌های شبکه و تکراری‌های مسدودشده در بالای صفحه گزارش زنده اسکن‌ها. |
+| **رابط کاربری دوزبانه استاندارد** | پشتیبانی کامل از زبان فارسی (RTL راست‌به‌چپ) و انگلیسی (LTR چپ‌به‌راست) با همترازی ۱۰۰٪ واژگان و منوها بدون تداخل چیدمان. |
+| **بارگذاری زنده settings.ini** | فایل تنظیمات استاندارد در کنار فایل اجرایی با قابلیت خواندن و اعمال خودکار تغییرات ظرف کمتر از ۱ ثانیه پس از ویرایش دستی. |
 
 ---
 
 ## 🚀 راهنمای شروع سریع
 
-### ۱. اجرای فایل آماده پرتابل (پیشنهادی)
-۱. بسته فشرده `BinaryReceptor-v3.2.0-win64.zip` را از بخش [انتشارهای گیت‌هاب (Releases)](https://github.com/ouncommono/BinaryReceptor/releases/latest) دانلود کنید.  
+### روش ۱: فایل اجرایی پرتابل بدون نیاز به نصب (پیشنهادی)
+۱. بسته فشرده `BinaryReceptor-v3.3.0-win64.zip` را از بخش [انتشارهای گیت‌هاب (Releases)](https://github.com/ouncommono/BinaryReceptor/releases/latest) دانلود کنید.  
 ۲. محتویات فایل زیپ را در یک پوشه دلخواه استخراج کنید.  
 ۳. فایل `BinaryReceptor.exe` را اجرا کنید.  
 ۴. روی دکمه **شروع به کار سرور** کلیک نمایید.
 
-### ۲. اجرا از سورس‌کد
+### روش ۲: اجرا از سورس‌کد
 ```powershell
+# کلون مخزن گیت
 git clone https://github.com/ouncommono/BinaryReceptor.git
 cd BinaryReceptor
+
+# نصب پیش‌نیازها
 pip install -r requirements.txt
+
+# اجرای برنامه
 python run.py
 ```
 
 ---
 
-## 📱 راهنمای گام‌به‌گام اتصال گوشی به کامپیوتر
+## 📱 راهنمای گام‌به‌گام اتصال و تنظیم گوشی (BinaryEye)
 
-### روش ۱: اتصال از طریق بلوتوث (بدون نیاز به شبکه و روتر)
+### روش ۱: اتصال از طریق بلوتوث RFCOMM (بدون نیاز به شبکه و روتر)
 ۱. در بخش تنظیمات بلوتوث ویندوز، گوشی اندروید خود را جفت (Pair) کنید.  
 ۲. در برنامه **BinaryEye** گوشی به مسیر **تنظیمات (Settings) ← بلوتوث (Bluetooth)** بروید.  
 ۳. گزینه **ارسال اسکن از طریق بلوتوث** را روشن کرده و نام کامپیوتر خود را انتخاب کنید.  
@@ -256,33 +309,38 @@ python run.py
 ### روش ۲: اتصال از طریق شبکه محلی و وای‌فای (HTTP Forwarding)
 در برنامه BinaryEye به مسیر **تنظیمات ← ارسال (Forwarding)** رفته و گزینه **ارسال اسکن‌ها** را فعال کنید. چهار حالت استاندارد زیر پشتیبانی می‌شوند:
 
-۱. **حالت اول: POST با ساختار JSON (پیشنهادی)**
-   - نوع درخواست در گوشی: `POST application/json`
-   - نشانی سرور: `http://<IP_کامپیوتر>:24234/`
+#### حالت اول: POST application/json (پیشنهادی)
+- **نوع درخواست در گوشی**: `POST application/json`
+- **نشانی سرور در گوشی**: `http://<IP_کامپیوتر>:24234/`
+- برنامه باینری‌رسپتور ساختار JSON را با کلیدهای `content`، `format`، `raw`، `scanId` بلافاصله پردازش کرده و پاسخ 200 OK می‌دهد.
 
-۲. **حالت دوم: GET با رشته پرسمان کامل (Full Query String)**
-   - نوع درخواست در گوشی: `GET with full query string`
-   - نشانی سرور: `http://<IP_کامپیوتر>:24234/`
+#### حالت دوم: POST application/x-www-form-urlencoded
+- **نوع درخواست در گوشی**: `POST application/x-www-form-urlencoded`
+- **نشانی سرور در گوشی**: `http://<IP_کامپیوتر>:24234/`
+- داده‌ها در قالب فرم اینترنتی استاندارد به سرور ارسال می‌شوند.
 
-۳. **حالت سوم: GET با افزودن مستقیم مقدار بارکد (Simply Add Content)**
-   - نوع درخواست در گوشی: `GET and simply add content`
-   - نشانی سرور: `http://<IP_کامپیوتر>:24234/?content=` (یا `http://<IP_کامپیوتر>:24234/`)
+#### حالت سوم: GET with full query string
+- **نوع درخواست در گوشی**: `GET with full query string`
+- **نشانی سرور در گوشی**: `http://<IP_کامپیوتر>:24234/`
+- برنامه BinaryEye به صورت خودکار پارامترهای `?content=...&raw=...&format=...` را به انتهای نشانی می‌افزاید.
 
-۴. **حالت چهارم: GET با الگوی اختصاصی (Custom Template)**
-   - نوع درخواست در گوشی: `GET with custom URL`
-   - نشانی سرور: `http://<IP_کامپیوتر>:24234/?content={RESULT}&format={FORMAT}&raw={RESULT_BYTES}`
+#### حالت چهارم: GET and simply add content
+- **نوع درخواست در گوشی**: `GET and simply add content`
+- **نشانی سرور در گوشی**: `http://<IP_کامپیوتر>:24234/?content=` (یا `http://<IP_کامپیوتر>:24234/`)
+- بارکد اسکن‌شده مستقیماً به انتهای آدرس اضافه می‌شود.
+- الگوی سفارشی اختیاری: `http://<IP_کامپیوتر>:24234/?content={RESULT}&format={FORMAT}&raw={RESULT_BYTES}`
 
 ---
 
-## ⌨️ راهنمای توکن‌ها و کلیدهای ویژه
+## ⌨️ جدول جامع توکن‌های پیشوند و پسوند (Prefix & Suffix)
 
-| توکن | کلید معادل در ویندوز | کاربرد |
+| توکن | کلید معادل در ویندوز | کاربرد متداول |
 | :--- | :--- | :--- |
-| `{ENTER}` | کلید Enter | ثبت فرم، رفتن به سطر بعدی یا ارسال داده |
-| `{TAB}` | کلید Tab | انتقال مکان‌نما به فیلد یا ستون بعدی در اکسل |
-| `{SPACE}` | کلید Space | درج فاصله میان کدهای متوالی |
-| `{BACKSPACE}`| کلید Backspace | حذف کاراکترهای اضافی یا ارقام کنترلی ناخواسته |
-| `{ESC}` | کلید Escape | بستن پنجره‌های بازشو پیش یا پس از اسکن |
+| `{ENTER}` | کلید Enter (`VK_RETURN`) | ثبت فرم، رفتن به سطر بعدی یا ارسال داده |
+| `{TAB}` | کلید Tab (`VK_TAB`) | انتقال مکان‌نما به فیلد یا ستون بعدی در اکسل یا نرم‌افزار حسابداری |
+| `{SPACE}` | کلید فاصله Space | درج فاصله میان کدهای متوالی |
+| `{BACKSPACE}`| کلید Backspace (`VK_BACK`) | حذف کاراکترهای اضافی یا ارقام کنترلی ناخواسته |
+| `{ESC}` | کلید خروج Escape | بستن پنجره‌های بازشو پیش یا پس از اسکن |
 | `{DOWN}` | کلید فلش رو به پایین | حرکت به ردیف پایینی در جدول انبارداری |
 | `{DATE}` | تاریخ روز جاری | درج خودکار تاریخ سیستم (`YYYY-MM-DD`) |
 | `{TIME}` | ساعت جاری | درج خودکار زمان دقیق ثبت (`HH:MM:SS`) |
@@ -290,26 +348,71 @@ python run.py
 
 ---
 
-## ⚙️ جدول تنظیمات نرم‌افزار (`settings.ini`)
+## ⚙️ مرجع کامل تنظیمات نرم‌افزار (`settings.ini`)
 
 فایل تنظیمات `settings.ini` همواره در کنار فایل اجرایی برنامه قرار داشته و در صورت ویرایش دستی با نوت‌پد، ظرف کمتر از ۱ ثانیه به صورت خودکار در برنامه بارگذاری مجدد می‌شود:
 
-- `mode`: حالت دریافت داده (`both` برای بلوتوث و شبکه، `http` برای فقط شبکه، `bluetooth` برای فقط بلوتوث).
-- `language`: زبان محیط کاربری (`fa` فارسی یا `en` انگلیسی).
-- `theme`: پوسته نرم‌افزار (`dark` تیره، `light` روشن یا `system` همگام با ویندوز).
-- `auto_start`: روشن شدن خودکار سرور در بدو اجرای برنامه (پیش‌فرض: `false`).
-- `minimize_to_tray`: کمینه‌سازی در کنار ساعت ویندوز با کلیک روی ضربدر بستن (پیش‌فرض: `true`).
-- `audio_feedback`: پخش صدای بیپ پس از دریافت موفق اسکن (پیش‌فرض: `true`).
-- `http_port`: پورت شنود سرور تحت شبکه (پیش‌فرض: `24234`).
-- `output_mode`: نحوه درج داده در ویندوز (`type` تایپ با کیبورد، `paste` پیست سریع با کلیپ‌بورد، `copy_only` فقط کپی).
-- `suffix`: کلیدهایی که پس از بارکد تایپ می‌شوند (پیش‌فرض: `{ENTER}`).
-- `deduplication_enabled`: فعال بودن فیلتر ضدتکرار هوشمند (پیش‌فرض: `true`).
+| بخش | کلید | پیش‌فرض | شرح عملکرد |
+| :--- | :--- | :--- | :--- |
+| `[general]` | `mode` | `both` | حالت کاری: `both` (ترکیبی)، `http` (فقط شبکه)، یا `bluetooth` (فقط بلوتوث). |
+| `[general]` | `language` | `en` | زبان محیط کاربری: `en` (انگلیسی - LTR) یا `fa` (فارسی - RTL). |
+| `[general]` | `theme` | `dark` | پوسته نرم‌افزار: `dark` (تیره)، `light` (روشن)، یا `system` (همگام با ویندوز). |
+| `[general]` | `auto_start` | `false` | روشن شدن خودکار سرور در بدو اجرای برنامه (پیش‌فرض: خاموش). |
+| `[general]` | `start_minimized` | `false` | اجرای برنامه به صورت کمینه در کنار ساعت سیستم (System Tray). |
+| `[general]` | `minimize_to_tray` | `true` | کمینه‌سازی در کنار ساعت هنگام کلیک روی دکمه ضربدر بستن پنجره. |
+| `[general]` | `audio_feedback` | `true` | پخش صدای شفاف بیپ پس از دریافت موفق اسکن بارکد. |
+| `[general]` | `tray_notifications` | `true` | نمایش اعلان‌های بالونی یا نوتیفیکیشن ویندوز پس از اسکن. |
+| `[network]` | `http_host` | `0.0.0.0` | آی‌پی شنود سرور تحت شبکه (`0.0.0.0` برای شنود روی تمامی کارت‌های شبکه). |
+| `[network]` | `http_port` | `24234` | پورت شنود سرور برای دریافت درخواست‌های فوروارد BinaryEye. |
+| `[bluetooth]` | `bt_enabled` | `true` | فعال‌سازی شنود سوکت‌های بلوتوث RFCOMM ویندوز. |
+| `[bluetooth]` | `service_uuid` | `8a8478c9-...` | شناسه سرویس بلوتوث SDP استاندارد نرم‌افزار BinaryEye. |
+| `[wedge]` | `output_mode` | `type` | حالت شبیه‌سازی: `type` (تایپ کلیدها)، `paste` (پیست)، `copy_only`، `log_only`. |
+| `[wedge]` | `inter_key_delay_ms` | `0` | وقفه زمانی میان تایپ کلیدها به میلی‌ثانیه جهت سازگاری با سیستم‌های مالی. |
+| `[wedge]` | `prefix` | `""` | کلیدها یا توکن‌هایی که قبل از بارکد به طور خودکار تایپ می‌شوند. |
+| `[wedge]` | `suffix` | `{ENTER}` | کلیدها یا توکن‌هایی که پس از بارکد به طور خودکار تایپ می‌شوند. |
+| `[deduplication]` | `deduplication_enabled` | `true` | فعال‌سازی جلوگیری از ورود اسکن‌های تکراری در بازه زمانی تعیین‌شده. |
+| `[deduplication]` | `deduplication_window_ms`| `1500` | بازه زمانی جلوگیری از اسکن تکراری به میلی‌ثانیه (Cooldown). |
 
 ---
 
-## 📜 پروانه نرم‌افزار و حقوق نشر (License)
+## 🔧 عیب‌یابی و پرسش‌های متداول (Troubleshooting)
 
-این پروژه تحت مجوز آزاد [MIT License](LICENSE) منتشر شده است.  
-توسعه و بازنویسی جامع نسخه ۳ توسط **ouncommono**.  
-پروژه اصلی: [KamaleiZestri/BinaryReceptor](https://github.com/KamaleiZestri/BinaryReceptor).  
-کلاینت اندروید: [BinaryEye](https://github.com/markusfisch/BinaryEye) اثر Markus Fisch.
+- **خطای پورت در شبکه (Error binding :24234)**: چنانچه برنامه دیگری از پورت 24234 استفاده می‌کند، در تب تنظیمات پورت را تغییر دهید (مثلاً 25000) و ذخیره کنید.
+- **خاموش بودن آداپتور بلوتوث (Adapter Off)**: مطمئن شوید بلوتوث در تنظیمات ویندوز روشن است و دانگل یا سخت‌افزار بلوتوث فعال است.
+- **تایپ دوگانه در حالت ترکیبی**: اطمینان حاصل کنید فیلتر ضدتکرار در تنظیمات فعال بوده و بازه زمانی آن روی ۱۵۰۰ یا ۲۰۰۰ میلی‌ثانیه تنظیم شده باشد.
+- **تایپ نشدن در پنجره هدف**: برنامه باینری‌رسپتور را با دسترسی مشابه با نرم‌افزار مقصد اجرا کنید (در صورت تایپ در برنامه‌های با دسترسی ادمین، باینری‌رسپتور را نیز با Run as Administrator اجرا فرمایید).
+
+---
+
+## 🏗️ راهنمای ساخت فایل اجرایی ویندوز (Build .exe)
+
+جهت کامپایل و تولید فایل پرتابل `BinaryReceptor.exe`:
+
+```powershell
+# نصب پیش‌نیازهای کامپایل
+pip install -r requirements-build.txt
+
+# اجرای اسکریپت خودکار ساخت
+python build.py
+```
+
+این اسکریپت یک فایل مستقل تک‌باینری `dist/BinaryReceptor.exe` تولید کرده، فایل `settings.ini` را در کنار آن قرار می‌دهد و بلافاصله تست خودکار اولیه (`BinaryReceptor.exe --self-test`) را جهت صحت اجرا اعتبارسنجی می‌کند.
+
+---
+
+## 🧪 آزمون‌های خودکار و تضمین کیفیت (Testing)
+
+اجرای مجموعه تست‌های جامع واحد و یکپارچگی پروژه:
+
+```powershell
+pytest -v tests/
+```
+
+---
+
+## 📜 پروانه نرم‌افزار و حقوق نشر (License & Credits)
+
+این پروژه تحت مجوز آزاد بین‌المللی [MIT License](LICENSE) منتشر شده است.  
+طراحی معماری، بازنویسی مدرن و توسعه نسخه ۳.۳.۰ توسط **ouncommono**.  
+پروژه پایه و مخزن اصلی: [KamaleiZestri/BinaryReceptor](https://github.com/KamaleiZestri/BinaryReceptor).  
+اپلیکیشن کلاینت اندروید: [BinaryEye](https://github.com/markusfisch/BinaryEye) اثر Markus Fisch.
