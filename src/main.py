@@ -207,8 +207,7 @@ def run_self_test() -> int:
 
         window = MainWindow(mgr)
         assert window is not None
-        window.close()
-        mgr.close()
+        window.exit_application()
         print("  [OK] PySide6 GUI and MainWindow initialized successfully")
 
         print(f"[SELF-TEST] BinaryReceptor v{__version__} self-test PASSED.")

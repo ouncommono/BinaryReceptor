@@ -60,7 +60,8 @@ def run_pyinstaller():
         "PyInstaller",
         "--noconsole",
         "--onefile",
-        "--strip" if shutil.which("strip") else "",
+        # Do not use --strip on Windows; GNU strip on Windows PE binaries deadlocks or hangs
+        "--strip" if (sys.platform != "win32" and shutil.which("strip")) else "",
         "--clean",
         "--optimize=2",
         "--noupx",
