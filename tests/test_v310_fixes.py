@@ -25,9 +25,9 @@ from src.config import render_keystroke_output
 
 
 def test_version_and_appid():
-    """Verify version 3.1.0 and clean App ID without prefixes."""
-    assert __version__ == "3.1.0"
-    assert APP_ID == "BinaryReceptor.3.1.0"
+    """Verify version 3.2.0 and clean App ID without prefixes."""
+    assert __version__ == "3.2.0"
+    assert APP_ID == "BinaryReceptor.3.2.0"
     assert "ouncommono" not in APP_ID
 
 

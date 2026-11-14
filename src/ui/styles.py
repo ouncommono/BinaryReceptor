@@ -1,4 +1,4 @@
-"""Modern high-DPI responsive Dark and Light QSS stylesheets for BinaryReceptor v3.1.0.
+"""Modern high-DPI responsive Dark and Light QSS stylesheets for BinaryReceptor v3.2.0.
 
 Engineered with full RTL (Right-to-Left) Persian layout support and beautiful typography
 (Vazirmatn, Segoe UI, Tahoma).
@@ -98,6 +98,68 @@ QPushButton#MasterPowerBtnStopped:hover {{
     border: 1px solid #f59e0b;
     border-radius: 8px;
     padding: 10px;
+}}
+
+/* Compact Single-Row Status Bar */
+#CompactStatusBar {{
+    background-color: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    padding: 6px 12px;
+    max-height: 58px;
+}}
+
+.StatusStripItem {{
+    background-color: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 6px;
+    padding: 3px 8px;
+}}
+
+.StatusStripLabel {{
+    color: #94a3b8;
+    font-size: 11px;
+    font-weight: 600;
+}}
+
+.StatusPillActive {{
+    background-color: #064e3b;
+    color: #6ee7b7;
+    border: 1px solid #059669;
+    border-radius: 5px;
+    padding: 2px 8px;
+    font-size: 11px;
+    font-weight: bold;
+}}
+
+.StatusPillStopped {{
+    background-color: #451a1a;
+    color: #fca5a5;
+    border: 1px solid #ef4444;
+    border-radius: 5px;
+    padding: 2px 8px;
+    font-size: 11px;
+    font-weight: bold;
+}}
+
+.StatusPillInactive {{
+    background-color: #1e293b;
+    color: #94a3b8;
+    border: 1px solid #334155;
+    border-radius: 5px;
+    padding: 2px 8px;
+    font-size: 11px;
+    font-weight: 500;
+}}
+
+.StatusPillAmber {{
+    background-color: #452b0a;
+    color: #fcd34d;
+    border: 1px solid #f59e0b;
+    border-radius: 5px;
+    padding: 2px 8px;
+    font-size: 11px;
+    font-weight: bold;
 }}
 
 .KPICardLabel {{
@@ -449,6 +511,68 @@ QPushButton#MasterPowerBtnStopped:hover {{
     border: 1px solid #f59e0b;
     border-radius: 8px;
     padding: 10px;
+}}
+
+/* Compact Single-Row Status Bar */
+#CompactStatusBar {{
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 6px 12px;
+    max-height: 58px;
+}}
+
+.StatusStripItem {{
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 3px 8px;
+}}
+
+.StatusStripLabel {{
+    color: #64748b;
+    font-size: 11px;
+    font-weight: 600;
+}}
+
+.StatusPillActive {{
+    background-color: #d1fae5;
+    color: #065f46;
+    border: 1px solid #10b981;
+    border-radius: 5px;
+    padding: 2px 8px;
+    font-size: 11px;
+    font-weight: bold;
+}}
+
+.StatusPillStopped {{
+    background-color: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #ef4444;
+    border-radius: 5px;
+    padding: 2px 8px;
+    font-size: 11px;
+    font-weight: bold;
+}}
+
+.StatusPillInactive {{
+    background-color: #f1f5f9;
+    color: #64748b;
+    border: 1px solid #cbd5e1;
+    border-radius: 5px;
+    padding: 2px 8px;
+    font-size: 11px;
+    font-weight: 500;
+}}
+
+.StatusPillAmber {{
+    background-color: #fef3c7;
+    color: #92400e;
+    border: 1px solid #f59e0b;
+    border-radius: 5px;
+    padding: 2px 8px;
+    font-size: 11px;
+    font-weight: bold;
 }}
 
 .KPICardLabel {{

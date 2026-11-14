@@ -1,12 +1,14 @@
-"""Automated build script for BinaryReceptor v3.1.0.
+"""Automated build script for BinaryReceptor v3.2.0.
 
 Compiles the application into a standalone Windows .exe using PyInstaller:
   - --noconsole (windowed GUI mode)
   - --onefile (single binary executable)
+  - --noupx (UPX disabled to prevent qwindows.dll and C-extension corruption)
   - --name BinaryReceptor
   - --icon assets/icon.ico (multi-resolution 16-256px icon)
   - --version-file res/version.txt (Windows PE metadata)
   - Copies default settings.ini alongside BinaryReceptor.exe in dist/
+  - Executes post-build smoke test (dist/BinaryReceptor.exe --self-test)
 """
 from __future__ import annotations
 
@@ -45,7 +47,7 @@ def ensure_icon():
 
 
 def run_pyinstaller():
-    print("[3/5] Running PyInstaller build...")
+    print("[3/5] Running PyInstaller build (stable packaging profile, UPX disabled)...")
     entry_point = ROOT_DIR / "src" / "main.py"
 
     cmd = [
@@ -54,8 +56,8 @@ def run_pyinstaller():
         "PyInstaller",
         "--noconsole",
         "--onefile",
-        "--name",
-        "BinaryReceptor",
+        "--noupx",
+        "--name=BinaryReceptor",
         f"--icon={ICON_PATH}",
         f"--add-data={ASSETS_DIR}{os.pathsep}assets",
         f"--version-file={VERSION_FILE}" if VERSION_FILE.exists() else "",
@@ -73,7 +75,7 @@ def run_pyinstaller():
     print("Command:", " ".join(cmd))
     proc = subprocess.run(cmd, cwd=str(ROOT_DIR))
     if proc.returncode != 0:
-        print("[ERROR] PyInstaller compilation failed.")
+        print("[ERROR] PyInstaller compilation failed with code:", proc.returncode)
         sys.exit(proc.returncode)
 
 
@@ -86,13 +88,38 @@ def finalize_release_bundle():
 
     # Ensure default settings.ini is copied alongside the exe
     target_ini = DIST_DIR / "settings.ini"
+    sys.path.insert(0, str(ROOT_DIR))
     from src.config import DEFAULT_SETTINGS_INI
     target_ini.write_text(DEFAULT_SETTINGS_INI, encoding="utf-8")
 
     size_mb = exe_path.stat().st_size / (1024 * 1024)
-    print(f"[5/5] Build SUCCESSFUL!")
     print(f"      Executable : {exe_path} ({size_mb:.2f} MB)")
     print(f"      Settings   : {target_ini}")
+
+
+def verify_executable_self_test():
+    print("[5/5] Executing mandatory post-build .exe startup smoke test (--self-test)...")
+    exe_path = DIST_DIR / "BinaryReceptor.exe"
+    if not exe_path.exists():
+        print("[ERROR] Expected binary not found for self-test:", exe_path)
+        sys.exit(1)
+
+    proc = subprocess.run(
+        [str(exe_path), "--self-test"],
+        capture_output=True,
+        text=True,
+        cwd=str(DIST_DIR),
+    )
+    if proc.returncode != 0:
+        print(f"[FATAL] Compiled executable self-test FAILED with exit code {proc.returncode}!")
+        if proc.stdout:
+            print("STDOUT:\n", proc.stdout)
+        if proc.stderr:
+            print("STDERR:\n", proc.stderr)
+        sys.exit(proc.returncode)
+
+    print(f"[SUCCESS] Standalone executable verified cleanly: {proc.stdout.strip()}")
+    print("[DONE] Build and verification SUCCESSFUL!")
 
 
 def main():
@@ -100,6 +127,7 @@ def main():
     ensure_icon()
     run_pyinstaller()
     finalize_release_bundle()
+    verify_executable_self_test()
 
 
 if __name__ == "__main__":

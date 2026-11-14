@@ -39,6 +39,7 @@ from PySide6.QtWidgets import (
     QFileDialog,
     QFrame,
     QScrollArea,
+    QSizePolicy,
 )
 
 from src.config import (
@@ -230,84 +231,117 @@ class MainWindow(QMainWindow):
 
         main_layout.addWidget(header_card)
 
-        # 2. Dynamic Top Status Cards
-        status_bar_layout = QHBoxLayout()
-        status_bar_layout.setSpacing(10)
+        # 2. Sleek Compact Single-Row Horizontal Status Bar (Requirement 6)
+        self.compact_status_bar = QFrame()
+        self.compact_status_bar.setObjectName("CompactStatusBar")
+        cs_layout = QHBoxLayout(self.compact_status_bar)
+        cs_layout.setContentsMargins(12, 4, 12, 4)
+        cs_layout.setSpacing(14)
 
-        # Card 1: Master Server Status
-        self.card_server = QFrame()
-        self.card_server.setProperty("class", "KPICardStopped")
-        cs_layout = QVBoxLayout(self.card_server)
-        cs_layout.setContentsMargins(10, 8, 10, 8)
-        self.lbl_card_server_title = QLabel(tr("card_server_title", self.config.language))
-        self.lbl_card_server_title.setProperty("class", "KPICardLabel")
-        self.lbl_card_server_val = QLabel(tr("status_stopped", self.config.language))
-        self.lbl_card_server_val.setProperty("class", "KPICardValue")
-        cs_layout.addWidget(self.lbl_card_server_title)
-        cs_layout.addWidget(self.lbl_card_server_val)
-        status_bar_layout.addWidget(self.card_server)
+        # Item 1: Master Server Status Pill
+        row_server = QHBoxLayout()
+        row_server.setSpacing(6)
+        self.lbl_strip_server = QLabel(tr("strip_server", self.config.language))
+        self.lbl_strip_server.setProperty("class", "StatusStripLabel")
+        self.pill_server = QLabel(tr("status_stopped", self.config.language))
+        self.pill_server.setProperty("class", "StatusPillStopped")
+        row_server.addWidget(self.lbl_strip_server)
+        row_server.addWidget(self.pill_server)
+        cs_layout.addLayout(row_server)
 
-        # Card 2: Bluetooth Status
-        self.card_bt = QFrame()
-        self.card_bt.setProperty("class", "KPICardInactive")
-        cbt_layout = QVBoxLayout(self.card_bt)
-        cbt_layout.setContentsMargins(10, 8, 10, 8)
-        self.lbl_card_bt_title = QLabel(tr("card_bt_title", self.config.language))
-        self.lbl_card_bt_title.setProperty("class", "KPICardLabel")
-        self.lbl_card_bt_val = QLabel(tr("status_standby", self.config.language))
-        self.lbl_card_bt_val.setProperty("class", "KPICardValue")
-        cbt_layout.addWidget(self.lbl_card_bt_title)
-        cbt_layout.addWidget(self.lbl_card_bt_val)
-        status_bar_layout.addWidget(self.card_bt)
+        # Item 2: Mode Pill
+        row_mode = QHBoxLayout()
+        row_mode.setSpacing(6)
+        self.lbl_strip_mode = QLabel(tr("strip_mode", self.config.language))
+        self.lbl_strip_mode.setProperty("class", "StatusStripLabel")
+        self.pill_mode = QLabel(tr("opt_mode_both", self.config.language))
+        self.pill_mode.setProperty("class", "StatusPillInactive")
+        row_mode.addWidget(self.lbl_strip_mode)
+        row_mode.addWidget(self.pill_mode)
+        cs_layout.addLayout(row_mode)
 
-        # Card 3: HTTP Server Status
-        self.card_http = QFrame()
-        self.card_http.setProperty("class", "KPICardInactive")
-        ch_layout = QVBoxLayout(self.card_http)
-        ch_layout.setContentsMargins(10, 8, 10, 8)
-        self.lbl_card_http_title = QLabel(tr("card_http_title", self.config.language))
-        self.lbl_card_http_title.setProperty("class", "KPICardLabel")
-        self.lbl_card_http_val = QLabel(tr("status_standby", self.config.language))
-        self.lbl_card_http_val.setProperty("class", "KPICardValue")
-        ch_layout.addWidget(self.lbl_card_http_title)
-        ch_layout.addWidget(self.lbl_card_http_val)
-        status_bar_layout.addWidget(self.card_http)
+        # Item 3: Bluetooth Status Pill
+        row_bt = QHBoxLayout()
+        row_bt.setSpacing(6)
+        self.lbl_strip_bt = QLabel(tr("strip_bt", self.config.language))
+        self.lbl_strip_bt.setProperty("class", "StatusStripLabel")
+        self.pill_bt = QLabel(tr("status_standby", self.config.language))
+        self.pill_bt.setProperty("class", "StatusPillInactive")
+        row_bt.addWidget(self.lbl_strip_bt)
+        row_bt.addWidget(self.pill_bt)
+        cs_layout.addLayout(row_bt)
 
-        # Card 4: Operation Mode / Deduplication Metrics
-        self.card_mode = QFrame()
-        self.card_mode.setProperty("class", "KPICardInactive")
-        cm_layout = QVBoxLayout(self.card_mode)
-        cm_layout.setContentsMargins(10, 8, 10, 8)
-        self.lbl_card_mode_title = QLabel(tr("card_mode_title", self.config.language))
-        self.lbl_card_mode_title.setProperty("class", "KPICardLabel")
-        self.lbl_card_mode_val = QLabel("Hybrid (Both)")
-        self.lbl_card_mode_val.setProperty("class", "KPICardValue")
-        cm_layout.addWidget(self.lbl_card_mode_title)
-        cm_layout.addWidget(self.lbl_card_mode_val)
-        status_bar_layout.addWidget(self.card_mode)
+        # Item 4: HTTP Status Pill
+        row_http = QHBoxLayout()
+        row_http.setSpacing(6)
+        self.lbl_strip_http = QLabel(tr("strip_http", self.config.language))
+        self.lbl_strip_http.setProperty("class", "StatusStripLabel")
+        self.pill_http = QLabel(tr("status_standby", self.config.language))
+        self.pill_http.setProperty("class", "StatusPillInactive")
+        row_http.addWidget(self.lbl_strip_http)
+        row_http.addWidget(self.pill_http)
+        cs_layout.addLayout(row_http)
 
-        main_layout.addLayout(status_bar_layout)
+        cs_layout.addStretch()
 
-        # 3. KPI Metrics Counters Bar
-        kpi_layout = QHBoxLayout()
-        kpi_layout.setSpacing(10)
+        # Item 5: Inline Scans KPI Metrics (Total, BT, HTTP, Dedup)
+        row_stats = QHBoxLayout()
+        row_stats.setSpacing(8)
+        self.lbl_strip_stats = QLabel(tr("strip_stats", self.config.language))
+        self.lbl_strip_stats.setProperty("class", "StatusStripLabel")
+        row_stats.addWidget(self.lbl_strip_stats)
 
-        self.kpi_cards: dict[str, tuple[QLabel, QLabel]] = {}
-        for key in ["kpi_total_scans", "kpi_bt_scans", "kpi_http_scans", "kpi_dedup_blocked"]:
-            card = QFrame()
-            card.setProperty("class", "KPICard")
-            cl = QVBoxLayout(card)
-            cl.setContentsMargins(10, 6, 10, 6)
-            lbl = QLabel(tr(key, self.config.language))
-            lbl.setProperty("class", "KPICardLabel")
-            val = QLabel("0")
-            val.setProperty("class", "KPICardValue")
-            cl.addWidget(lbl)
-            cl.addWidget(val)
-            kpi_layout.addWidget(card)
-            self.kpi_cards[key] = (lbl, val)
+        self.lbl_kpi_total_desc = QLabel(f"{tr('strip_total', self.config.language)}:")
+        self.lbl_kpi_total_desc.setProperty("class", "StatusStripLabel")
+        self.lbl_kpi_total = QLabel("0")
+        self.lbl_kpi_total.setStyleSheet("font-weight: bold; color: #38bdf8;")
+        row_stats.addWidget(self.lbl_kpi_total_desc)
+        row_stats.addWidget(self.lbl_kpi_total)
 
-        main_layout.addLayout(kpi_layout)
+        self.lbl_kpi_bt_desc = QLabel("BT:")
+        self.lbl_kpi_bt_desc.setProperty("class", "StatusStripLabel")
+        self.lbl_kpi_bt = QLabel("0")
+        self.lbl_kpi_bt.setStyleSheet("font-weight: bold; color: #a78bfa;")
+        row_stats.addWidget(self.lbl_kpi_bt_desc)
+        row_stats.addWidget(self.lbl_kpi_bt)
+
+        self.lbl_kpi_http_desc = QLabel("HTTP:")
+        self.lbl_kpi_http_desc.setProperty("class", "StatusStripLabel")
+        self.lbl_kpi_http = QLabel("0")
+        self.lbl_kpi_http.setStyleSheet("font-weight: bold; color: #34d399;")
+        row_stats.addWidget(self.lbl_kpi_http_desc)
+        row_stats.addWidget(self.lbl_kpi_http)
+
+        self.lbl_kpi_dedup_desc = QLabel(f"{tr('strip_dedup', self.config.language)}:")
+        self.lbl_kpi_dedup_desc.setProperty("class", "StatusStripLabel")
+        self.lbl_kpi_dedup = QLabel("0")
+        self.lbl_kpi_dedup.setStyleSheet("font-weight: bold; color: #f59e0b;")
+        row_stats.addWidget(self.lbl_kpi_dedup_desc)
+        row_stats.addWidget(self.lbl_kpi_dedup)
+
+        cs_layout.addLayout(row_stats)
+        main_layout.addWidget(self.compact_status_bar)
+
+        # Backward-compatible references for internal slots / tests
+        self.card_server = self.pill_server
+        self.card_bt = self.pill_bt
+        self.card_http = self.pill_http
+        self.card_mode = self.pill_mode
+        self.lbl_card_server_title = self.lbl_strip_server
+        self.lbl_card_bt_title = self.lbl_strip_bt
+        self.lbl_card_http_title = self.lbl_strip_http
+        self.lbl_card_mode_title = self.lbl_strip_mode
+        self.lbl_card_server_val = self.pill_server
+        self.lbl_card_bt_val = self.pill_bt
+        self.lbl_card_http_val = self.pill_http
+        self.lbl_card_mode_val = self.pill_mode
+
+        self.kpi_cards = {
+            "kpi_total_scans": (self.lbl_kpi_total_desc, self.lbl_kpi_total),
+            "kpi_bt_scans": (self.lbl_kpi_bt_desc, self.lbl_kpi_bt),
+            "kpi_http_scans": (self.lbl_kpi_http_desc, self.lbl_kpi_http),
+            "kpi_dedup_blocked": (self.lbl_kpi_dedup_desc, self.lbl_kpi_dedup),
+        }
 
         # 4. Main Tabs Navigation
         self.tabs = QTabWidget()
@@ -372,8 +406,20 @@ class MainWindow(QMainWindow):
     # ==========================================================================
     def _build_wedge_tab(self) -> None:
         tab = QWidget()
-        layout = QVBoxLayout(tab)
+        tab_outer = QVBoxLayout(tab)
+        tab_outer.setContentsMargins(0, 0, 0, 0)
+
+        # Requirement 2: Wrap entire Prefix/Suffix content in a smooth scroll container
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setFrameShape(QFrame.Shape.NoFrame)
+        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        scroll.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+
+        content = QWidget()
+        layout = QVBoxLayout(content)
         layout.setContentsMargins(14, 14, 14, 14)
+        layout.setSpacing(14)
 
         self.lbl_wedge_title = QLabel(tr("wedge_title", self.config.language))
         self.lbl_wedge_title.setFont(QFont("Segoe UI", 13, QFont.Weight.Bold))
@@ -381,87 +427,93 @@ class MainWindow(QMainWindow):
 
         self.lbl_wedge_desc = QLabel(tr("wedge_desc", self.config.language))
         self.lbl_wedge_desc.setWordWrap(True)
-        self.lbl_wedge_desc.setStyleSheet("color: #94a3b8; margin-bottom: 8px;")
+        self.lbl_wedge_desc.setStyleSheet("color: #94a3b8; margin-bottom: 4px;")
         layout.addWidget(self.lbl_wedge_desc)
 
         # Prefix Builder Card
         self.grp_prefix = QGroupBox(tr("lbl_prefix", self.config.language))
         pl = QVBoxLayout(self.grp_prefix)
+        pl.setSpacing(10)
 
         p_row1 = QHBoxLayout()
         self.combo_prefix_preset = QComboBox()
-        self._populate_token_presets(self.combo_prefix_preset)
+        self.combo_prefix_preset.setMinimumHeight(30)
         self.combo_prefix_preset.currentIndexChanged.connect(self._on_prefix_preset_changed)
         p_row1.addWidget(self.combo_prefix_preset)
 
         self.txt_prefix = QLineEdit(self.config.prefix)
+        self.txt_prefix.setMinimumHeight(30)
         self.txt_prefix.textChanged.connect(self._on_wedge_text_changed)
         p_row1.addWidget(self.txt_prefix, stretch=1)
 
         self.btn_clear_p = QPushButton(tr("btn_clear_field", self.config.language))
         self.btn_clear_p.setObjectName("SecondaryBtn")
+        self.btn_clear_p.setMinimumHeight(30)
         self.btn_clear_p.clicked.connect(lambda: self.txt_prefix.clear())
         p_row1.addWidget(self.btn_clear_p)
         pl.addLayout(p_row1)
 
-        # Interactive Token Chips for Prefix
-        p_chips = QHBoxLayout()
-        for token, key in [
-            ("{ENTER}", "btn_add_enter"),
-            ("{TAB}", "btn_add_tab"),
-            ("{SPACE}", "btn_add_space"),
-            ("{BACKSPACE}", "btn_add_backspace"),
-            ("{ESC}", "btn_add_esc"),
-            ("{DOWN}", "btn_add_down"),
-            ("{DATE}", "btn_add_date"),
-            ("{TIME}", "btn_add_time"),
-        ]:
+        # Interactive Token Chips for Prefix in a clean 4-column responsive grid
+        p_chips_grid = QGridLayout()
+        p_chips_grid.setSpacing(6)
+        self.prefix_chip_buttons: list[tuple[QPushButton, str]] = []
+        chip_specs = [
+            ("{ENTER}", "btn_add_enter", 0, 0),
+            ("{TAB}", "btn_add_tab", 0, 1),
+            ("{SPACE}", "btn_add_space", 0, 2),
+            ("{BACKSPACE}", "btn_add_backspace", 0, 3),
+            ("{ESC}", "btn_add_esc", 1, 0),
+            ("{DOWN}", "btn_add_down", 1, 1),
+            ("{DATE}", "btn_add_date", 1, 2),
+            ("{TIME}", "btn_add_time", 1, 3),
+        ]
+        for token, key, r, c in chip_specs:
             btn = QPushButton(tr(key, self.config.language))
             btn.setObjectName("ChipBtn")
+            btn.setMinimumHeight(28)
+            btn.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
             btn.clicked.connect(lambda checked=False, t=token: self._append_token(self.txt_prefix, t))
-            p_chips.addWidget(btn)
-        p_chips.addStretch()
-        pl.addLayout(p_chips)
+            p_chips_grid.addWidget(btn, r, c)
+            self.prefix_chip_buttons.append((btn, key))
+        pl.addLayout(p_chips_grid)
         layout.addWidget(self.grp_prefix)
 
         # Suffix Builder Card
         self.grp_suffix = QGroupBox(tr("lbl_suffix", self.config.language))
         sl = QVBoxLayout(self.grp_suffix)
+        sl.setSpacing(10)
 
         s_row1 = QHBoxLayout()
         self.combo_suffix_preset = QComboBox()
-        self._populate_token_presets(self.combo_suffix_preset)
+        self.combo_suffix_preset.setMinimumHeight(30)
         self.combo_suffix_preset.currentIndexChanged.connect(self._on_suffix_preset_changed)
         s_row1.addWidget(self.combo_suffix_preset)
 
         self.txt_suffix = QLineEdit(self.config.suffix)
+        self.txt_suffix.setMinimumHeight(30)
         self.txt_suffix.textChanged.connect(self._on_wedge_text_changed)
         s_row1.addWidget(self.txt_suffix, stretch=1)
 
         self.btn_clear_s = QPushButton(tr("btn_clear_field", self.config.language))
         self.btn_clear_s.setObjectName("SecondaryBtn")
+        self.btn_clear_s.setMinimumHeight(30)
         self.btn_clear_s.clicked.connect(lambda: self.txt_suffix.clear())
         s_row1.addWidget(self.btn_clear_s)
         sl.addLayout(s_row1)
 
-        # Interactive Token Chips for Suffix
-        s_chips = QHBoxLayout()
-        for token, key in [
-            ("{ENTER}", "btn_add_enter"),
-            ("{TAB}", "btn_add_tab"),
-            ("{SPACE}", "btn_add_space"),
-            ("{BACKSPACE}", "btn_add_backspace"),
-            ("{ESC}", "btn_add_esc"),
-            ("{DOWN}", "btn_add_down"),
-            ("{DATE}", "btn_add_date"),
-            ("{TIME}", "btn_add_time"),
-        ]:
+        # Interactive Token Chips for Suffix in a clean 4-column responsive grid
+        s_chips_grid = QGridLayout()
+        s_chips_grid.setSpacing(6)
+        self.suffix_chip_buttons: list[tuple[QPushButton, str]] = []
+        for token, key, r, c in chip_specs:
             btn = QPushButton(tr(key, self.config.language))
             btn.setObjectName("ChipBtn")
+            btn.setMinimumHeight(28)
+            btn.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
             btn.clicked.connect(lambda checked=False, t=token: self._append_token(self.txt_suffix, t))
-            s_chips.addWidget(btn)
-        s_chips.addStretch()
-        sl.addLayout(s_chips)
+            s_chips_grid.addWidget(btn, r, c)
+            self.suffix_chip_buttons.append((btn, key))
+        sl.addLayout(s_chips_grid)
         layout.addWidget(self.grp_suffix)
 
         # Live Keystroke Preview Box (Renders TRUE output without {ENTER} syntax)
@@ -469,12 +521,18 @@ class MainWindow(QMainWindow):
         pr_layout = QVBoxLayout(self.grp_preview)
         self.lbl_preview_text = QLabel()
         self.lbl_preview_text.setStyleSheet(
-            "font-family: Consolas, monospace; font-size: 14px; color: #38bdf8; background: #0b1120; border: 1px solid #1e293b; border-radius: 6px; padding: 12px;"
+            "font-family: Consolas, monospace; font-size: 14px; color: #38bdf8; background: #0b1120; border: 1px solid #1e293b; border-radius: 6px; padding: 12px; min-height: 48px;"
         )
+        self.lbl_preview_text.setWordWrap(True)
         pr_layout.addWidget(self.lbl_preview_text)
         layout.addWidget(self.grp_preview)
 
         layout.addStretch()
+        scroll.setWidget(content)
+        tab_outer.addWidget(scroll)
+
+        self._populate_token_presets(self.combo_prefix_preset)
+        self._populate_token_presets(self.combo_suffix_preset)
         self._update_wedge_preview()
         self.tabs.addTab(tab, tr("tab_wedge", self.config.language))
 
@@ -525,7 +583,7 @@ class MainWindow(QMainWindow):
         self.lbl_preview_text.setText(escaped_preview if rendered else "(empty)")
 
     # ==========================================================================
-    # TAB 3: Connection Assistant & Clean QR Generator
+    # TAB 3: Connection Assistant & Clean QR Generator (Requirement 3 & 4)
     # ==========================================================================
     def _build_connection_tab(self) -> None:
         tab = QWidget()
@@ -560,7 +618,7 @@ class MainWindow(QMainWindow):
         self.qr_subtabs = QTabWidget()
         layout.addWidget(self.qr_subtabs, stretch=1)
 
-        # Subtab 1: Clean HTTP Forwarding URL (No /*)
+        # Subtab 1: Standard Forwarding URL with 4 BinaryEye Request Types
         sub1 = QWidget()
         l1 = QHBoxLayout(sub1)
         self.lbl_qr_url_img = QLabel()
@@ -568,9 +626,27 @@ class MainWindow(QMainWindow):
         l1.addWidget(self.lbl_qr_url_img)
 
         info1 = QVBoxLayout()
-        self.lbl_desc_qr_url = QLabel(tr("desc_qr_url", self.config.language))
+        self.lbl_req_type_hdr = QLabel(tr("lbl_binaryeye_req_type", self.config.language))
+        self.lbl_req_type_hdr.setStyleSheet("font-weight: bold; margin-top: 4px;")
+        info1.addWidget(self.lbl_req_type_hdr)
+
+        self.combo_req_type = QComboBox()
+        self.combo_req_type.addItem(tr("opt_req_post_json", self.config.language), "post_json")
+        self.combo_req_type.addItem(tr("opt_req_post_form", self.config.language), "post_form")
+        self.combo_req_type.addItem(tr("opt_req_get_query", self.config.language), "get_query")
+        self.combo_req_type.addItem(tr("opt_req_get_append", self.config.language), "get_append")
+        self.combo_req_type.addItem(tr("opt_req_get_template", self.config.language), "get_template")
+        self.combo_req_type.currentIndexChanged.connect(self._refresh_all_qrs)
+        info1.addWidget(self.combo_req_type)
+
+        self.lbl_desc_qr_url = QLabel(tr("desc_req_post_json", self.config.language))
         self.lbl_desc_qr_url.setWordWrap(True)
+        self.lbl_desc_qr_url.setStyleSheet("color: #94a3b8; margin-top: 6px; margin-bottom: 6px;")
         info1.addWidget(self.lbl_desc_qr_url)
+
+        self.lbl_url_field_hdr = QLabel(tr("lbl_http_url", self.config.language))
+        info1.addWidget(self.lbl_url_field_hdr)
+
         self.txt_url_display = QLineEdit()
         self.txt_url_display.setReadOnly(True)
         info1.addWidget(self.txt_url_display)
@@ -578,53 +654,34 @@ class MainWindow(QMainWindow):
         l1.addLayout(info1, stretch=1)
         self.qr_subtabs.addTab(sub1, tr("subtab_qr_url", self.config.language))
 
-        # Subtab 2: Continuous Mode Web Landing Page Helper
+        # Subtab 2: Barcode Generator (100% Raw Text Verbatim)
         sub2 = QWidget()
         l2 = QHBoxLayout(sub2)
-        self.lbl_qr_direct_img = QLabel()
-        self.lbl_qr_direct_img.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        l2.addWidget(self.lbl_qr_direct_img)
-
-        info2 = QVBoxLayout()
-        self.lbl_desc_qr_direct = QLabel(tr("desc_qr_direct", self.config.language, ip=self._get_selected_ip(), port=self.config.http_port))
-        self.lbl_desc_qr_direct.setWordWrap(True)
-        self.lbl_desc_qr_direct.setStyleSheet("font-size: 13px; font-weight: bold; color: #10b981;")
-        info2.addWidget(self.lbl_desc_qr_direct)
-        self.txt_direct_display = QLineEdit()
-        self.txt_direct_display.setReadOnly(True)
-        info2.addWidget(self.txt_direct_display)
-        info2.addStretch()
-        l2.addLayout(info2, stretch=1)
-        self.qr_subtabs.addTab(sub2, tr("subtab_qr_direct", self.config.language))
-
-        # Subtab 3: Barcode Generator (100% Raw Text Verbatim, No Deep Link!)
-        sub3 = QWidget()
-        l3 = QHBoxLayout(sub3)
         self.lbl_qr_encode_img = QLabel()
         self.lbl_qr_encode_img.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        l3.addWidget(self.lbl_qr_encode_img)
+        l2.addWidget(self.lbl_qr_encode_img)
 
-        form3 = QVBoxLayout()
+        form2 = QVBoxLayout()
         self.lbl_desc_qr_encode = QLabel(tr("desc_qr_encode", self.config.language))
         self.lbl_desc_qr_encode.setWordWrap(True)
-        form3.addWidget(self.lbl_desc_qr_encode)
+        form2.addWidget(self.lbl_desc_qr_encode)
 
         self.lbl_encode_txt_hdr = QLabel(tr("lbl_encode_text", self.config.language))
-        form3.addWidget(self.lbl_encode_txt_hdr)
+        form2.addWidget(self.lbl_encode_txt_hdr)
         self.txt_encode_content = QLineEdit("SAMPLE-BARCODE-12345")
         self.txt_encode_content.textChanged.connect(self._render_encode_qr)
-        form3.addWidget(self.txt_encode_content)
+        form2.addWidget(self.txt_encode_content)
 
         self.lbl_encode_fmt_hdr = QLabel(tr("lbl_encode_format", self.config.language))
-        form3.addWidget(self.lbl_encode_fmt_hdr)
+        form2.addWidget(self.lbl_encode_fmt_hdr)
         self.combo_encode_format = QComboBox()
         self.combo_encode_format.addItems(BINARYEYE_FORMATS)
         self.combo_encode_format.currentIndexChanged.connect(self._render_encode_qr)
-        form3.addWidget(self.combo_encode_format)
+        form2.addWidget(self.combo_encode_format)
 
-        form3.addStretch()
-        l3.addLayout(form3, stretch=1)
-        self.qr_subtabs.addTab(sub3, tr("subtab_qr_encode", self.config.language))
+        form2.addStretch()
+        l2.addLayout(form2, stretch=1)
+        self.qr_subtabs.addTab(sub2, tr("subtab_qr_encode", self.config.language))
 
         self.tabs.addTab(tab, tr("tab_connection", self.config.language))
         self._refresh_all_qrs()
@@ -647,25 +704,21 @@ class MainWindow(QMainWindow):
     def _refresh_all_qrs(self) -> None:
         ip = self._get_selected_ip()
         port = self.config.http_port
+        req_type = self.combo_req_type.currentData() if hasattr(self, "combo_req_type") else "post_json"
 
-        # 1. Clean HTTP Forwarding URL: ALWAYS http://<IP>:<PORT>/ (never /*)
-        url = build_forwarding_url(ip, port)
+        # 1. Clean HTTP Forwarding URL matching selected BinaryEye request type
+        url = build_forwarding_url(ip, port, req_type)
         self.txt_url_display.setText(url)
+
+        desc_key = f"desc_req_{req_type}"
+        self.lbl_desc_qr_url.setText(tr(desc_key, self.config.language))
+
         png1 = generate_qr_png_bytes(url, box_size=5, border=1)
         pm1 = QPixmap()
         pm1.loadFromData(png1)
         self.lbl_qr_url_img.setPixmap(pm1.scaled(200, 200, Qt.AspectRatioMode.KeepAspectRatio))
 
-        # 2. Continuous Mode Web Landing Page Helper
-        landing_url = f"http://{ip}:{port}/start"
-        self.txt_direct_display.setText(landing_url)
-        self.lbl_desc_qr_direct.setText(tr("desc_qr_direct", self.config.language, ip=ip, port=port))
-        png2 = generate_qr_png_bytes(landing_url, box_size=5, border=1)
-        pm2 = QPixmap()
-        pm2.loadFromData(png2)
-        self.lbl_qr_direct_img.setPixmap(pm2.scaled(200, 200, Qt.AspectRatioMode.KeepAspectRatio))
-
-        # 3. Barcode Generator (100% Raw Text Verbatim)
+        # 2. Barcode Generator (100% Raw Text Verbatim)
         self._render_encode_qr()
 
     def _render_encode_qr(self) -> None:
@@ -1117,68 +1170,68 @@ class MainWindow(QMainWindow):
         self.btn_master_power.setStyle(self.btn_master_power.style())
 
     def _update_status_card_styles(self) -> None:
-        """Requirement 9: Dynamically update border and background colors of top status cards."""
+        """Requirement 6 & 9: Dynamically update colors and text of compact top status bar pills."""
         mode = self.config.mode.strip().lower()
 
-        # 1. Master Server Status
+        # 1. Master Server Status Pill
         if self.is_server_active:
-            self.card_server.setProperty("class", "KPICardActive")
-            self.lbl_card_server_val.setText(tr("status_running", self.config.language))
+            self.pill_server.setProperty("class", "StatusPillActive")
+            self.pill_server.setText(tr("status_running", self.config.language))
         else:
-            self.card_server.setProperty("class", "KPICardStopped")
-            self.lbl_card_server_val.setText(tr("status_stopped", self.config.language))
+            self.pill_server.setProperty("class", "StatusPillStopped")
+            self.pill_server.setText(tr("status_stopped", self.config.language))
 
-        # 2. Bluetooth Status
+        # 2. Bluetooth Status Pill
         if mode == "http":
-            self.card_bt.setProperty("class", "KPICardInactive")
-            self.lbl_card_bt_val.setText(tr("status_disabled", self.config.language))
+            self.pill_bt.setProperty("class", "StatusPillInactive")
+            self.pill_bt.setText(tr("status_disabled", self.config.language))
         elif self.is_server_active and self.bt_server and self.bt_server.is_running:
-            self.card_bt.setProperty("class", "KPICardActive")
-            self.lbl_card_bt_val.setText(self.bt_server.status)
+            self.pill_bt.setProperty("class", "StatusPillActive")
+            self.pill_bt.setText(self.bt_server.status)
         else:
-            self.card_bt.setProperty("class", "KPICardInactive")
-            self.lbl_card_bt_val.setText(tr("status_standby", self.config.language))
+            self.pill_bt.setProperty("class", "StatusPillInactive")
+            self.pill_bt.setText(tr("status_standby", self.config.language))
 
-        # 3. HTTP Server Status
+        # 3. HTTP Server Status Pill
         if mode == "bluetooth":
-            self.card_http.setProperty("class", "KPICardInactive")
-            self.lbl_card_http_val.setText(tr("status_disabled", self.config.language))
+            self.pill_http.setProperty("class", "StatusPillInactive")
+            self.pill_http.setText(tr("status_disabled", self.config.language))
         elif self.is_server_active and self.http_server and self.http_server.is_running:
-            self.card_http.setProperty("class", "KPICardActive")
-            self.lbl_card_http_val.setText(f":{self.config.http_port} (Active)")
+            self.pill_http.setProperty("class", "StatusPillActive")
+            self.pill_http.setText(f":{self.config.http_port} (Active)")
         elif self.is_server_active and self.http_server and self.http_server.last_error:
-            self.card_http.setProperty("class", "KPICardStopped")
-            self.lbl_card_http_val.setText(tr("status_error", self.config.language))
+            self.pill_http.setProperty("class", "StatusPillStopped")
+            self.pill_http.setText(tr("status_error", self.config.language))
         else:
-            self.card_http.setProperty("class", "KPICardInactive")
-            self.lbl_card_http_val.setText(tr("status_standby", self.config.language))
+            self.pill_http.setProperty("class", "StatusPillInactive")
+            self.pill_http.setText(tr("status_standby", self.config.language))
 
-        # 4. Mode Card
+        # 4. Mode Pill
         mode_label = {
             "both": tr("opt_mode_both", self.config.language),
             "http": tr("opt_mode_http", self.config.language),
             "bluetooth": tr("opt_mode_bt", self.config.language),
         }.get(mode, mode)
-        self.lbl_card_mode_val.setText(mode_label)
-        self.card_mode.setProperty("class", "KPICardActive" if self.is_server_active else "KPICardInactive")
+        self.pill_mode.setText(mode_label)
+        self.pill_mode.setProperty("class", "StatusPillActive" if self.is_server_active else "StatusPillInactive")
 
         # Force style re-polish for immediate visual update
-        for card in [self.card_server, self.card_bt, self.card_http, self.card_mode]:
-            card.style().unpolish(card)
-            card.style().polish(card)
-            card.update()
+        for pill in [self.pill_server, self.pill_bt, self.pill_http, self.pill_mode]:
+            pill.style().unpolish(pill)
+            pill.style().polish(pill)
+            pill.update()
 
     @Slot(str)
     def _on_bt_status_changed_ui(self, status: str) -> None:
-        self.lbl_card_bt_val.setText(status)
+        self.pill_bt.setText(status)
         if "Connected" in status or "Listening" in status:
-            self.card_bt.setProperty("class", "KPICardActive")
+            self.pill_bt.setProperty("class", "StatusPillActive")
         elif "Off" in status:
-            self.card_bt.setProperty("class", "KPICardAmber")
+            self.pill_bt.setProperty("class", "StatusPillAmber")
         else:
-            self.card_bt.setProperty("class", "KPICardInactive")
-        self.card_bt.style().unpolish(self.card_bt)
-        self.card_bt.style().polish(self.card_bt)
+            self.pill_bt.setProperty("class", "StatusPillInactive")
+        self.pill_bt.style().unpolish(self.pill_bt)
+        self.pill_bt.style().polish(self.pill_bt)
 
     # ==========================================================================
     # CENTRAL PIPELINE: DEDUPLICATION, GUARDS, TRANSFORMS & OUTPUT ROUTING
@@ -1219,26 +1272,7 @@ class MainWindow(QMainWindow):
         raw_content = payload.content or ""
 
         # ----------------------------------------------------------------------
-        # 2. Self-Link & Deep Link Interceptor (Requirement 6)
-        # ----------------------------------------------------------------------
-        # Intercept binaryeye:// deep links or self server URLs so they are never typed!
-        clean_check = raw_content.strip()
-        is_self_link = (
-            clean_check.startswith("binaryeye://")
-            or f":{self.config.http_port}" in clean_check
-            or clean_check.endswith("/scan")
-            or clean_check.endswith("/start")
-        )
-        if is_self_link:
-            self.signals.scan_received.emit(
-                payload,
-                tr("status_handshake", self.config.language),
-                "Handshake test scan intercepted successfully",
-            )
-            return
-
-        # ----------------------------------------------------------------------
-        # 3. Canonical Normalization & Atomic Deduplication (Requirement 3)
+        # 2. Canonical Normalization & Atomic Deduplication (Requirement 3)
         # ----------------------------------------------------------------------
         canonical_content = ScanDeduplicator.normalize_content(raw_content)
         if not canonical_content:
@@ -1384,10 +1418,10 @@ class MainWindow(QMainWindow):
 
     @Slot()
     def _update_kpi_cards(self) -> None:
-        self.kpi_cards["kpi_total_scans"][1].setText(str(self.cnt_total))
-        self.kpi_cards["kpi_bt_scans"][1].setText(str(self.cnt_bt))
-        self.kpi_cards["kpi_http_scans"][1].setText(str(self.cnt_http))
-        self.kpi_cards["kpi_dedup_blocked"][1].setText(str(self.cnt_dedup))
+        self.lbl_kpi_total.setText(str(self.cnt_total))
+        self.lbl_kpi_bt.setText(str(self.cnt_bt))
+        self.lbl_kpi_http.setText(str(self.cnt_http))
+        self.lbl_kpi_dedup.setText(str(self.cnt_dedup))
 
     # ==========================================================================
     # HISTORY TABLE ACTIONS
@@ -1485,11 +1519,14 @@ class MainWindow(QMainWindow):
         self.btn_lang_toggle.setText(tr("lang_switch", lang))
         self._update_power_button()
 
-        # Top Status Cards
-        self.lbl_card_server_title.setText(tr("card_server_title", lang))
-        self.lbl_card_bt_title.setText(tr("card_bt_title", lang))
-        self.lbl_card_http_title.setText(tr("card_http_title", lang))
-        self.lbl_card_mode_title.setText(tr("card_mode_title", lang))
+        # Compact Top Status Strip
+        self.lbl_strip_server.setText(tr("strip_server", lang))
+        self.lbl_strip_mode.setText(tr("strip_mode", lang))
+        self.lbl_strip_bt.setText(tr("strip_bt", lang))
+        self.lbl_strip_http.setText(tr("strip_http", lang))
+        self.lbl_strip_stats.setText(tr("strip_stats", lang))
+        self.lbl_kpi_total_desc.setText(f"{tr('strip_total', lang)}:")
+        self.lbl_kpi_dedup_desc.setText(f"{tr('strip_dedup', lang)}:")
         self._update_status_card_styles()
 
         # Tab titles
@@ -1497,10 +1534,6 @@ class MainWindow(QMainWindow):
         self.tabs.setTabText(1, tr("tab_wedge", lang))
         self.tabs.setTabText(2, tr("tab_connection", lang))
         self.tabs.setTabText(3, tr("tab_settings", lang))
-
-        # KPI labels
-        for key in ["kpi_total_scans", "kpi_bt_scans", "kpi_http_scans", "kpi_dedup_blocked"]:
-            self.kpi_cards[key][0].setText(tr(key, lang))
 
         # Dashboard table headers
         self.table_history.setHorizontalHeaderLabels([
@@ -1528,10 +1561,9 @@ class MainWindow(QMainWindow):
         self.lbl_lan_ip_header.setText(tr("lbl_lan_ip", lang))
         self.btn_copy_active_url.setText(tr("btn_copy_url", lang))
         self.qr_subtabs.setTabText(0, tr("subtab_qr_url", lang))
-        self.qr_subtabs.setTabText(1, tr("subtab_qr_direct", lang))
-        self.qr_subtabs.setTabText(2, tr("subtab_qr_encode", lang))
-        self.lbl_desc_qr_url.setText(tr("desc_qr_url", lang))
-        self.lbl_desc_qr_direct.setText(tr("desc_qr_direct", lang, ip=self._get_selected_ip(), port=self.config.http_port))
+        self.qr_subtabs.setTabText(1, tr("subtab_qr_encode", lang))
+        self.lbl_req_type_hdr.setText(tr("lbl_binaryeye_req_type", lang))
+        self.lbl_url_field_hdr.setText(tr("lbl_http_url", lang))
         self.lbl_desc_qr_encode.setText(tr("desc_qr_encode", lang))
         self.lbl_encode_txt_hdr.setText(tr("lbl_encode_text", lang))
         self.lbl_encode_fmt_hdr.setText(tr("lbl_encode_format", lang))
@@ -1574,8 +1606,82 @@ class MainWindow(QMainWindow):
             tr("lbl_unsaved_changes" if self.has_unsaved_changes else "lbl_all_saved", lang)
         )
 
+        # Retranslate All Dropdown Lists & Buttons (Requirement 5)
+        self._retranslate_all_dropdowns(lang)
+
+        # Refresh QR codes & instructions for new language
+        self._refresh_all_qrs()
+
         # Update Tray State
         self.tray.update_state(self.is_server_active, self.config.mode, lang)
+
+    def _retranslate_all_dropdowns(self, lang: str) -> None:
+        """Requirement 5: 100% complete Persian and English localization across all dropdowns and chip buttons."""
+        # 1. Operation Mode Dropdown
+        cur_mode = self.combo_mode.currentData() or self.config.mode
+        self.combo_mode.blockSignals(True)
+        self.combo_mode.clear()
+        self.combo_mode.addItem(tr("opt_mode_both", lang), "both")
+        self.combo_mode.addItem(tr("opt_mode_http", lang), "http")
+        self.combo_mode.addItem(tr("opt_mode_bt", lang), "bluetooth")
+        idx_m = self.combo_mode.findData(cur_mode)
+        if idx_m >= 0:
+            self.combo_mode.setCurrentIndex(idx_m)
+        self.combo_mode.blockSignals(False)
+
+        # 2. Output Mode Dropdown
+        cur_out = self.combo_out_mode.currentData() or self.config.output_mode
+        self.combo_out_mode.blockSignals(True)
+        self.combo_out_mode.clear()
+        self.combo_out_mode.addItem(tr("opt_out_type", lang), "type")
+        self.combo_out_mode.addItem(tr("opt_out_paste", lang), "paste")
+        self.combo_out_mode.addItem(tr("opt_out_copy", lang), "copy_only")
+        self.combo_out_mode.addItem(tr("opt_out_log", lang), "log_only")
+        idx_o = self.combo_out_mode.findData(cur_out)
+        if idx_o >= 0:
+            self.combo_out_mode.setCurrentIndex(idx_o)
+        self.combo_out_mode.blockSignals(False)
+
+        # 3. Newline Replace Dropdown
+        cur_nl = self.combo_nl.currentData() or self.config.replace_newlines
+        self.combo_nl.blockSignals(True)
+        self.combo_nl.clear()
+        self.combo_nl.addItem(tr("opt_nl_none", lang), "none")
+        self.combo_nl.addItem(tr("opt_nl_tab", lang), "tab")
+        self.combo_nl.addItem(tr("opt_nl_space", lang), "space")
+        idx_nl = self.combo_nl.findData(cur_nl)
+        if idx_nl >= 0:
+            self.combo_nl.setCurrentIndex(idx_nl)
+        self.combo_nl.blockSignals(False)
+
+        # 4. BinaryEye Request Type Dropdown
+        if hasattr(self, "combo_req_type"):
+            cur_req = self.combo_req_type.currentData() or "post_json"
+            self.combo_req_type.blockSignals(True)
+            self.combo_req_type.clear()
+            self.combo_req_type.addItem(tr("opt_req_post_json", lang), "post_json")
+            self.combo_req_type.addItem(tr("opt_req_post_form", lang), "post_form")
+            self.combo_req_type.addItem(tr("opt_req_get_query", lang), "get_query")
+            self.combo_req_type.addItem(tr("opt_req_get_append", lang), "get_append")
+            self.combo_req_type.addItem(tr("opt_req_get_template", lang), "get_template")
+            idx_req = self.combo_req_type.findData(cur_req)
+            if idx_req >= 0:
+                self.combo_req_type.setCurrentIndex(idx_req)
+            self.combo_req_type.blockSignals(False)
+
+        # 5. Prefix & Suffix Presets
+        if hasattr(self, "combo_prefix_preset"):
+            self._populate_token_presets(self.combo_prefix_preset)
+        if hasattr(self, "combo_suffix_preset"):
+            self._populate_token_presets(self.combo_suffix_preset)
+
+        # 6. Prefix & Suffix Chip Buttons
+        if hasattr(self, "prefix_chip_buttons"):
+            for btn, key in self.prefix_chip_buttons:
+                btn.setText(tr(key, lang))
+        if hasattr(self, "suffix_chip_buttons"):
+            for btn, key in self.suffix_chip_buttons:
+                btn.setText(tr(key, lang))
 
     def toggle_theme(self) -> None:
         new_theme = "light" if self.config.theme == "dark" else "dark"

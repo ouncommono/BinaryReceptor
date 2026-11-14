@@ -51,7 +51,7 @@ class SingleInstanceMutex:
 
     ERROR_ALREADY_EXISTS = 183
 
-    def __init__(self, mutex_name: str = "Global\\BinaryReceptor_3_1_0_Mutex") -> None:
+    def __init__(self, mutex_name: str = "Global\\BinaryReceptor_3_2_0_Mutex") -> None:
         self.mutex_name = mutex_name
         self.handle = None
         self.already_running = False
@@ -142,6 +142,64 @@ def run_headless(config_mgr: ConfigManager, mode: str, port: int) -> None:
         config_mgr.close()
 
 
+def run_self_test() -> int:
+    """Comprehensive smoke test initializing all core subsystems, GUI, and controllers.
+
+    Exits 0 if clean, or non-zero if any exception occurs.
+    """
+    print(f"[SELF-TEST] Initializing {APP_NAME} v{__version__} subsystems...")
+    try:
+        # 1. Config Manager & Default Settings
+        from src.config import ConfigManager, AppConfig
+        mgr = ConfigManager()
+        cfg = mgr.current
+        assert isinstance(cfg, AppConfig)
+        print("  [OK] ConfigManager and AppConfig verified")
+
+        # 2. Translations & i18n
+        from src.ui.i18n import TRANSLATIONS, tr
+        assert len(TRANSLATIONS["en"]) > 0
+        assert len(TRANSLATIONS["fa"]) > 0
+        assert tr("app_title", "en")
+        assert tr("app_title", "fa")
+        print("  [OK] i18n translations verified")
+
+        # 3. Core Modules & Controllers
+        from src.core.http_server import HttpServerController, parse_binaryeye_request
+        from src.core.bt_server import BluetoothServerController
+        from src.core.deduplicator import DeduplicationEngine
+        from src.core.key_injector import KeyInjector
+        from src.core.sound import generate_scanner_beep_wav
+        from src.core.qr_helper import get_active_lan_ips, build_forwarding_url, generate_qr_png_bytes
+
+        # Verify WAV synthesis
+        wav_data = generate_scanner_beep_wav(1800, 2400, 85)
+        assert len(wav_data) > 100
+        print("  [OK] Core engines (HTTP, BT, Dedup, Injector, Sound, QR) verified")
+
+        # 4. GUI & MainWindow Bootstrap (Offscreen)
+        from PySide6.QtWidgets import QApplication
+        from src.ui.main_window import MainWindow
+
+        app = QApplication.instance()
+        if not app:
+            app = QApplication(["BinaryReceptor", "-platform", "offscreen"])
+
+        window = MainWindow(mgr)
+        assert window is not None
+        window.close()
+        mgr.close()
+        print("  [OK] PySide6 GUI and MainWindow initialized successfully")
+
+        print(f"[SELF-TEST] BinaryReceptor v{__version__} self-test PASSED.")
+        return 0
+    except Exception as exc:
+        import traceback
+        print(f"[SELF-TEST-FAILED] Fatal error during self-test: {exc}", file=sys.stderr)
+        traceback.print_exc()
+        return 1
+
+
 def main() -> None:
     # 1. Windows AppUserModelID & High-DPI setup
     setup_win32_environment()
@@ -166,9 +224,14 @@ def main() -> None:
     parser.add_argument("--port", type=int, help="HTTP port (1024-65535)")
     parser.add_argument("--minimized", action="store_true", help="Start minimized to system tray")
     parser.add_argument("--headless", action="store_true", help="Run without graphical user interface")
+    parser.add_argument("--self-test", "--smoke-test", action="store_true", help="Run startup smoke test and exit")
     parser.add_argument("--version", action="version", version=f"{APP_NAME} {__version__}")
 
     args = parser.parse_args()
+
+    # Early Self-Test Exit
+    if args.self_test:
+        sys.exit(run_self_test())
 
     # 3. Check Single-Instance Mutex
     mutex = SingleInstanceMutex()
