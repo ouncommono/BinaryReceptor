@@ -5,12 +5,14 @@ on:
     branches:
       - main
       - master
+      - "release/**"
     tags:
       - "v*"
   pull_request:
     branches:
       - main
       - master
+      - "release/**"
   workflow_dispatch:
 
 permissions:
@@ -19,6 +21,7 @@ permissions:
 env:
   NODE_OPTIONS: "--no-deprecation"
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+  QT_QPA_PLATFORM: "offscreen"
 
 jobs:
   build-and-release:
@@ -29,24 +32,20 @@ jobs:
 
     steps:
       - name: Checkout Source Code
-        shell: pwsh
-        run: |
-          git config --global core.autocrlf false
-          git init
-          git remote add origin "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git"
-          if ("${{ github.event_name }}" -eq "pull_request") {
-            git fetch --depth 1 origin "+refs/pull/${{ github.event.number }}/merge:refs/remotes/origin/pr-merge"
-            git checkout --force refs/remotes/origin/pr-merge
-          } elseif ("${{ github.ref_type }}" -eq "tag") {
-            git fetch --depth 1 origin "refs/tags/${{ github.ref_name }}"
-            git checkout --force FETCH_HEAD
-          } else {
-            git fetch --depth 1 origin "${{ github.sha }}"
-            git checkout --force FETCH_HEAD
-          }
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
 
       - name: Setup Virtual Environment and Build Executable
         shell: pwsh
+        env:
+          QT_QPA_PLATFORM: "offscreen"
         run: |
           Write-Host "[1/5] Setting up clean isolated virtual environment..."
           python -m venv .build_venv
@@ -69,14 +68,19 @@ jobs:
           Write-Host "Executable self-test PASSED successfully."
 
           Write-Host "[5/5] Creating distribution ZIP archive..."
-          Compress-Archive -Path dist/BinaryReceptor.exe,dist/settings.ini -DestinationPath dist/BinaryReceptor-v3.2.0-win64.zip -Force
+          Compress-Archive -Path dist/BinaryReceptor.exe,dist/settings.ini -DestinationPath dist/BinaryReceptor-v3.3.0-win64.zip -Force
 
       - name: Publish Release to GitHub Releases
         if: github.event_name != 'pull_request'
         shell: pwsh
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          $tag = if ('${{ github.ref_type }}' -eq 'tag') { '${{ github.ref_name }}' } else { 'v3.2.0' }
+          $tag = if ('${{ github.ref_type }}' -eq 'tag') { '${{ github.ref_name }}' } else { 'v3.3.0' }
           Write-Host "Publishing release $tag to GitHub Releases page with --latest..."
-          gh release create $tag dist/BinaryReceptor.exe dist/BinaryReceptor-v3.2.0-win64.zip --title "BinaryReceptor $tag" --notes "Official Release $tag" --latest --clobber
+          if (gh release view $tag 2>$null) {
+            gh release upload $tag dist/BinaryReceptor.exe dist/BinaryReceptor-v3.3.0-win64.zip --clobber
+            gh release edit $tag --title "BinaryReceptor $tag" --notes "Official Release $tag" --latest
+          } else {
+            gh release create $tag dist/BinaryReceptor.exe dist/BinaryReceptor-v3.3.0-win64.zip --target "${{ github.sha }}" --title "BinaryReceptor $tag" --notes "Official Release $tag" --latest
+          }

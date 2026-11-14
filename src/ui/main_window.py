@@ -1,4 +1,4 @@
-"""World-class bilingual (Persian RTL & English LTR) dashboard for BinaryReceptor v3.1.0."""
+"""World-class bilingual (Persian RTL & English LTR) dashboard for BinaryReceptor v3.3.0."""
 from __future__ import annotations
 
 import csv
@@ -130,6 +130,12 @@ class MainWindow(QMainWindow):
             enabled=self.config.deduplication_enabled,
         )
         self.injector = KeyInjector()
+
+        # Thread-safe Time-Interval Cooldown Gate (Specification 2)
+        self._scan_lock = threading.Lock()
+        self._last_scan_timestamp: float = 0.0
+        self._last_scan_text: str = ""
+        self._last_scan_source: str = ""
 
         # Metrics Counters
         self.cnt_total = 0
@@ -283,43 +289,6 @@ class MainWindow(QMainWindow):
         cs_layout.addLayout(row_http)
 
         cs_layout.addStretch()
-
-        # Item 5: Inline Scans KPI Metrics (Total, BT, HTTP, Dedup)
-        row_stats = QHBoxLayout()
-        row_stats.setSpacing(8)
-        self.lbl_strip_stats = QLabel(tr("strip_stats", self.config.language))
-        self.lbl_strip_stats.setProperty("class", "StatusStripLabel")
-        row_stats.addWidget(self.lbl_strip_stats)
-
-        self.lbl_kpi_total_desc = QLabel(f"{tr('strip_total', self.config.language)}:")
-        self.lbl_kpi_total_desc.setProperty("class", "StatusStripLabel")
-        self.lbl_kpi_total = QLabel("0")
-        self.lbl_kpi_total.setStyleSheet("font-weight: bold; color: #38bdf8;")
-        row_stats.addWidget(self.lbl_kpi_total_desc)
-        row_stats.addWidget(self.lbl_kpi_total)
-
-        self.lbl_kpi_bt_desc = QLabel("BT:")
-        self.lbl_kpi_bt_desc.setProperty("class", "StatusStripLabel")
-        self.lbl_kpi_bt = QLabel("0")
-        self.lbl_kpi_bt.setStyleSheet("font-weight: bold; color: #a78bfa;")
-        row_stats.addWidget(self.lbl_kpi_bt_desc)
-        row_stats.addWidget(self.lbl_kpi_bt)
-
-        self.lbl_kpi_http_desc = QLabel("HTTP:")
-        self.lbl_kpi_http_desc.setProperty("class", "StatusStripLabel")
-        self.lbl_kpi_http = QLabel("0")
-        self.lbl_kpi_http.setStyleSheet("font-weight: bold; color: #34d399;")
-        row_stats.addWidget(self.lbl_kpi_http_desc)
-        row_stats.addWidget(self.lbl_kpi_http)
-
-        self.lbl_kpi_dedup_desc = QLabel(f"{tr('strip_dedup', self.config.language)}:")
-        self.lbl_kpi_dedup_desc.setProperty("class", "StatusStripLabel")
-        self.lbl_kpi_dedup = QLabel("0")
-        self.lbl_kpi_dedup.setStyleSheet("font-weight: bold; color: #f59e0b;")
-        row_stats.addWidget(self.lbl_kpi_dedup_desc)
-        row_stats.addWidget(self.lbl_kpi_dedup)
-
-        cs_layout.addLayout(row_stats)
         main_layout.addWidget(self.compact_status_bar)
 
         # Backward-compatible references for internal slots / tests
@@ -336,13 +305,6 @@ class MainWindow(QMainWindow):
         self.lbl_card_http_val = self.pill_http
         self.lbl_card_mode_val = self.pill_mode
 
-        self.kpi_cards = {
-            "kpi_total_scans": (self.lbl_kpi_total_desc, self.lbl_kpi_total),
-            "kpi_bt_scans": (self.lbl_kpi_bt_desc, self.lbl_kpi_bt),
-            "kpi_http_scans": (self.lbl_kpi_http_desc, self.lbl_kpi_http),
-            "kpi_dedup_blocked": (self.lbl_kpi_dedup_desc, self.lbl_kpi_dedup),
-        }
-
         # 4. Main Tabs Navigation
         self.tabs = QTabWidget()
         main_layout.addWidget(self.tabs, stretch=1)
@@ -352,6 +314,13 @@ class MainWindow(QMainWindow):
         self._build_connection_tab()
         self._build_settings_tab()
 
+        self.kpi_cards = {
+            "kpi_total_scans": (self.lbl_kpi_total_desc, self.lbl_kpi_total),
+            "kpi_bt_scans": (self.lbl_kpi_bt_desc, self.lbl_kpi_bt),
+            "kpi_http_scans": (self.lbl_kpi_http_desc, self.lbl_kpi_http),
+            "kpi_dedup_blocked": (self.lbl_kpi_dedup_desc, self.lbl_kpi_dedup),
+        }
+
     # ==========================================================================
     # TAB 1: Live Activity Log & History
     # ==========================================================================
@@ -359,6 +328,72 @@ class MainWindow(QMainWindow):
         tab = QWidget()
         layout = QVBoxLayout(tab)
         layout.setContentsMargins(12, 12, 12, 12)
+        layout.setSpacing(10)
+
+        # 1. Scans Statistics Summary Header Card (Specification 5)
+        self.stats_summary_card = QFrame()
+        self.stats_summary_card.setObjectName("StatsSummaryCard")
+        stats_layout = QHBoxLayout(self.stats_summary_card)
+        stats_layout.setContentsMargins(12, 8, 12, 8)
+        stats_layout.setSpacing(12)
+
+        # Total Scans Card
+        card_total = QFrame()
+        card_total.setProperty("class", "MiniKpiCard")
+        tl = QVBoxLayout(card_total)
+        tl.setContentsMargins(8, 4, 8, 4)
+        tl.setSpacing(2)
+        self.lbl_kpi_total_desc = QLabel(tr("kpi_total_scans", self.config.language))
+        self.lbl_kpi_total_desc.setProperty("class", "MiniKpiTitle")
+        self.lbl_kpi_total = QLabel("0")
+        self.lbl_kpi_total.setStyleSheet("font-size: 18px; font-weight: bold; color: #38bdf8;")
+        tl.addWidget(self.lbl_kpi_total_desc)
+        tl.addWidget(self.lbl_kpi_total)
+        stats_layout.addWidget(card_total)
+
+        # Bluetooth Scans Card
+        card_bt = QFrame()
+        card_bt.setProperty("class", "MiniKpiCard")
+        bl = QVBoxLayout(card_bt)
+        bl.setContentsMargins(8, 4, 8, 4)
+        bl.setSpacing(2)
+        self.lbl_kpi_bt_desc = QLabel(tr("kpi_bt_scans", self.config.language))
+        self.lbl_kpi_bt_desc.setProperty("class", "MiniKpiTitle")
+        self.lbl_kpi_bt = QLabel("0")
+        self.lbl_kpi_bt.setStyleSheet("font-size: 18px; font-weight: bold; color: #a78bfa;")
+        bl.addWidget(self.lbl_kpi_bt_desc)
+        bl.addWidget(self.lbl_kpi_bt)
+        stats_layout.addWidget(card_bt)
+
+        # HTTP Scans Card
+        card_http = QFrame()
+        card_http.setProperty("class", "MiniKpiCard")
+        hl = QVBoxLayout(card_http)
+        hl.setContentsMargins(8, 4, 8, 4)
+        hl.setSpacing(2)
+        self.lbl_kpi_http_desc = QLabel(tr("kpi_http_scans", self.config.language))
+        self.lbl_kpi_http_desc.setProperty("class", "MiniKpiTitle")
+        self.lbl_kpi_http = QLabel("0")
+        self.lbl_kpi_http.setStyleSheet("font-size: 18px; font-weight: bold; color: #34d399;")
+        hl.addWidget(self.lbl_kpi_http_desc)
+        hl.addWidget(self.lbl_kpi_http)
+        stats_layout.addWidget(card_http)
+
+        # Duplicates Blocked Card
+        card_dedup = QFrame()
+        card_dedup.setProperty("class", "MiniKpiCard")
+        dl = QVBoxLayout(card_dedup)
+        dl.setContentsMargins(8, 4, 8, 4)
+        dl.setSpacing(2)
+        self.lbl_kpi_dedup_desc = QLabel(tr("kpi_dedup_blocked", self.config.language))
+        self.lbl_kpi_dedup_desc.setProperty("class", "MiniKpiTitle")
+        self.lbl_kpi_dedup = QLabel("0")
+        self.lbl_kpi_dedup.setStyleSheet("font-size: 18px; font-weight: bold; color: #f59e0b;")
+        dl.addWidget(self.lbl_kpi_dedup_desc)
+        dl.addWidget(self.lbl_kpi_dedup)
+        stats_layout.addWidget(card_dedup)
+
+        layout.addWidget(self.stats_summary_card)
 
         self.table_history = QTableWidget(0, 5)
         self.table_history.setHorizontalHeaderLabels([
@@ -647,9 +682,15 @@ class MainWindow(QMainWindow):
         self.lbl_url_field_hdr = QLabel(tr("lbl_http_url", self.config.language))
         info1.addWidget(self.lbl_url_field_hdr)
 
+        url_row = QHBoxLayout()
         self.txt_url_display = QLineEdit()
         self.txt_url_display.setReadOnly(True)
-        info1.addWidget(self.txt_url_display)
+        url_row.addWidget(self.txt_url_display, stretch=1)
+        self.btn_copy_url = QPushButton(tr("btn_copy_url", self.config.language))
+        self.btn_copy_url.setObjectName("SecondaryBtn")
+        self.btn_copy_url.clicked.connect(self._copy_http_forwarding_url)
+        url_row.addWidget(self.btn_copy_url)
+        info1.addLayout(url_row)
         info1.addStretch()
         l1.addLayout(info1, stretch=1)
         self.qr_subtabs.addTab(sub1, tr("subtab_qr_url", self.config.language))
@@ -803,19 +844,44 @@ class MainWindow(QMainWindow):
 
         layout.addWidget(self.grp_net)
 
-        # 3. Deduplication Engine
+        # 3. Deduplication Engine (Time-Interval Cooldown Gate)
         self.grp_dedup = QGroupBox(tr("sec_dedup", self.config.language))
-        dl = QGridLayout(self.grp_dedup)
+        dl = QVBoxLayout(self.grp_dedup)
+        dl.setSpacing(8)
 
         self.chk_dedup = QCheckBox(tr("chk_dedup_enabled", self.config.language))
-        dl.addWidget(self.chk_dedup, 0, 0, 1, 2)
+        dl.addWidget(self.chk_dedup)
 
-        self.lbl_dedup_win = QLabel(tr("lbl_dedup_window", self.config.language))
-        dl.addWidget(self.lbl_dedup_win, 1, 0)
+        row_interval = QHBoxLayout()
+        self.lbl_dedup_win = QLabel(tr("lbl_dedup_interval", self.config.language))
+        row_interval.addWidget(self.lbl_dedup_win)
+
         self.spin_dedup_win = QSpinBox()
         self.spin_dedup_win.setRange(100, 10000)
         self.spin_dedup_win.setSingleStep(250)
-        dl.addWidget(self.spin_dedup_win, 1, 1)
+        self.spin_dedup_win.setSuffix(" ms")
+        row_interval.addWidget(self.spin_dedup_win)
+        dl.addLayout(row_interval)
+
+        # Preset interval buttons
+        preset_row = QHBoxLayout()
+        preset_row.setSpacing(6)
+        self.lbl_dedup_presets = QLabel(tr("lbl_dedup_presets", self.config.language))
+        preset_row.addWidget(self.lbl_dedup_presets)
+
+        for ms_val, label in [(500, "500ms"), (1000, "1s"), (1500, "1.5s"), (2000, "2s"), (3000, "3s")]:
+            btn = QPushButton(label)
+            btn.setObjectName("SecondaryBtn")
+            btn.setFixedHeight(24)
+            btn.clicked.connect(lambda checked=False, v=ms_val: self.spin_dedup_win.setValue(v))
+            preset_row.addWidget(btn)
+        preset_row.addStretch()
+        dl.addLayout(preset_row)
+
+        self.lbl_dedup_hint = QLabel(tr("desc_dedup_cooldown", self.config.language))
+        self.lbl_dedup_hint.setWordWrap(True)
+        self.lbl_dedup_hint.setStyleSheet("color: #94a3b8; font-size: 11px;")
+        dl.addWidget(self.lbl_dedup_hint)
 
         layout.addWidget(self.grp_dedup)
 
@@ -1088,15 +1154,19 @@ class MainWindow(QMainWindow):
         http_ok = False
 
         # Requirement 1: Strict Operation Mode Isolation
-        # If mode is http only, Bluetooth MUST NOT be started!
+        # If mode is http only, Bluetooth MUST NOT be started under any circumstances!
         if mode in ("both", "bluetooth"):
-            self.bt_server = BluetoothServerController(
-                service_uuid=self.config.service_uuid,
-                service_name=self.config.service_name,
-                on_scan=self.enqueue_scan,
-                on_status_change=lambda s: self.signals.bt_status_changed.emit(s),
-            )
-            bt_ok, bt_msg = self.bt_server.start()
+            if not self.bt_server or not self.bt_server.is_running:
+                self.bt_server = BluetoothServerController(
+                    service_uuid=self.config.service_uuid,
+                    service_name=self.config.service_name,
+                    on_scan=self.enqueue_scan,
+                    on_status_change=lambda s: self.signals.bt_status_changed.emit(s),
+                    mode_checker=lambda: self.config.mode,
+                )
+                bt_ok, bt_msg = self.bt_server.start()
+            else:
+                bt_ok = True
         else:
             if self.bt_server:
                 self.bt_server.stop()
@@ -1104,14 +1174,18 @@ class MainWindow(QMainWindow):
 
         # If mode is bluetooth only, HTTP server MUST NOT be started!
         if mode in ("both", "http"):
-            self.http_server = HttpServerController(
-                host=self.config.http_host,
-                port=self.config.http_port,
-                on_scan=self.enqueue_scan,
-            )
-            http_ok, http_msg = self.http_server.start()
-            if not http_ok:
-                QMessageBox.warning(self, "HTTP Server", http_msg)
+            if not self.http_server or not self.http_server.is_running:
+                self.http_server = HttpServerController(
+                    host=self.config.http_host,
+                    port=self.config.http_port,
+                    on_scan=self.enqueue_scan,
+                    mode_checker=lambda: self.config.mode,
+                )
+                http_ok, http_msg = self.http_server.start()
+                if not http_ok:
+                    QMessageBox.warning(self, "HTTP Server", http_msg)
+            else:
+                http_ok = True
         else:
             if self.http_server:
                 self.http_server.stop()
@@ -1151,13 +1225,28 @@ class MainWindow(QMainWindow):
             self.combo_mode.setCurrentIndex(idx)
             self.combo_mode.blockSignals(False)
 
-        # Re-isolate and restart listeners if active
+        # Immediate isolation enforcement
         if self.is_server_active:
-            self.stop_server()
-            self.start_server()
+            if mode == "http" and self.bt_server:
+                self.bt_server.stop()
+                self.bt_server = None
+            elif mode == "bluetooth" and self.http_server:
+                self.http_server.stop()
+                self.http_server = None
+            elif mode == "both":
+                if not self.bt_server:
+                    self.start_server()
+                if not self.http_server:
+                    self.start_server()
         else:
-            self._update_status_card_styles()
+            if mode == "http" and self.bt_server:
+                self.bt_server.stop()
+                self.bt_server = None
+            elif mode == "bluetooth" and self.http_server:
+                self.http_server.stop()
+                self.http_server = None
 
+        self._update_status_card_styles()
         self.tray.update_state(self.is_server_active, self.config.mode, self.config.language)
 
     def _update_power_button(self) -> None:
@@ -1253,49 +1342,116 @@ class MainWindow(QMainWindow):
         self._worker_thread.start()
 
     def enqueue_scan(self, payload: ScanPayload) -> None:
-        """Thread-safe enqueueing from HTTP or Bluetooth transports."""
+        """Thread-safe enqueueing from HTTP or Bluetooth transports with strict mode gating."""
+        active_mode = (self.config.mode or "both").strip().lower()
+        src_l = (payload.source or "").strip().lower()
+        if active_mode == "http" and src_l == "bluetooth":
+            return
+        if active_mode == "bluetooth" and src_l == "http":
+            return
         self.scan_queue.put(payload)
 
-    def _process_scan_payload(self, payload: ScanPayload) -> None:
-        """Central Unified Scan Pipeline conforming strictly to Rules 1, 3, 4, 6."""
-        # ----------------------------------------------------------------------
-        # 1. Strict Mode Isolation Guard (Requirement 1)
-        # ----------------------------------------------------------------------
-        active_mode = self.config.mode.strip().lower()
-        source_lower = payload.source.strip().lower()
+    def _dispatch_output(self, text: str, source: str) -> str:
+        """Unified output method reading live output_mode at the moment of the scan.
 
-        if active_mode == "http" and source_lower != "http":
+        Guarantees exact behavior across both Bluetooth and HTTP:
+          - copy_only: Copies to clipboard ONLY. NEVER calls SendInput or types characters/prefix/suffix!
+          - clipboard_paste: Copies to clipboard and simulates Ctrl+V.
+          - simulated_typing (type): Injects keystrokes via SendInput Unicode.
+          - log_only: Only records scan in live table without touching clipboard or keyboard.
+        """
+        out_mode = (self.config.output_mode or "type").strip().lower()
+
+        # 1. Copy to clipboard only (Zero typing, zero SendInput)
+        if out_mode in ("copy_only", "copy", "clipboard_only"):
+            win32_set_clipboard_text(text)
+            try:
+                QApplication.clipboard().setText(text)
+            except Exception:
+                pass
+            return tr("status_copied", self.config.language)
+
+        # 2. History / Log only
+        if out_mode in ("log_only", "log", "none", "disabled"):
+            return tr("status_logged", self.config.language)
+
+        # 3. Clipboard Paste (Ctrl+V)
+        if out_mode in ("clipboard_paste", "paste"):
+            self.injector.inject_scan(
+                content=text,
+                prefix_template=self.config.prefix,
+                suffix_template=self.config.suffix,
+                output_mode="paste",
+                inter_key_delay_ms=self.config.inter_key_delay_ms,
+                pre_typing_delay_ms=self.config.pre_typing_delay_ms,
+                restore_clipboard=self.config.restore_clipboard,
+                copy_to_clipboard=self.config.copy_to_clipboard,
+            )
+            return tr("status_pasted", self.config.language)
+
+        # 4. Simulated Typing (SendInput Unicode)
+        self.injector.inject_scan(
+            content=text,
+            prefix_template=self.config.prefix,
+            suffix_template=self.config.suffix,
+            output_mode="type",
+            inter_key_delay_ms=self.config.inter_key_delay_ms,
+            pre_typing_delay_ms=self.config.pre_typing_delay_ms,
+            copy_to_clipboard=self.config.copy_to_clipboard,
+        )
+        return tr("status_typed", self.config.language)
+
+    def _process_scan_payload(self, payload: ScanPayload) -> None:
+        """Central Unified Scan Pipeline conforming strictly to Rules 1, 2, 3."""
+        # ----------------------------------------------------------------------
+        # 1. Strict Mode Isolation Guard (Specification 1)
+        # ----------------------------------------------------------------------
+        active_mode = (self.config.mode or "both").strip().lower()
+        src_l = (payload.source or "").strip().lower()
+
+        if active_mode == "http" and src_l == "bluetooth":
             return
-        if active_mode == "bluetooth" and source_lower != "bluetooth":
+        if active_mode == "bluetooth" and src_l == "http":
             return
 
         raw_content = payload.content or ""
 
         # ----------------------------------------------------------------------
-        # 2. Canonical Normalization & Atomic Deduplication (Requirement 3)
+        # 2. Canonical Normalization & Time-Interval Cooldown Gate (Specification 2)
         # ----------------------------------------------------------------------
         canonical_content = ScanDeduplicator.normalize_content(raw_content)
         if not canonical_content:
             return
 
-        is_dup, dedup_msg = self.dedup.check_and_record(
-            content=canonical_content,
-            source=payload.source,
-            scan_id=payload.scan_id,
-        )
+        with self._scan_lock:
+            elapsed_ms = (time.monotonic() - self._last_scan_timestamp) * 1000.0
+            cooldown_ms = float(self.config.deduplication_window_ms)
+            dedup_enabled = self.config.deduplication_enabled
+            mode = (self.config.mode or "both").strip().lower()
 
-        if is_dup:
-            self.cnt_dedup += 1
-            self.signals.stats_updated.emit()
-            self.signals.scan_received.emit(
-                payload,
-                tr("status_dedup", self.config.language),
-                dedup_msg,
-            )
-            return
+            # In Hybrid (both) mode (or whenever Duplicate Protection is enabled):
+            # if elapsed_ms < cooldown_ms AND (source != last_scan_source OR cleaned_text == last_scan_text),
+            # immediately suppress the second scan, increment the Duplicates Blocked counter, log it as suppressed,
+            # and return before executing any typing or clipboard output.
+            if dedup_enabled or mode == "both":
+                if elapsed_ms < cooldown_ms and (payload.source != self._last_scan_source or canonical_content == self._last_scan_text):
+                    self.cnt_dedup += 1
+                    self.signals.stats_updated.emit()
+                    self.signals.scan_received.emit(
+                        payload,
+                        tr("status_dedup", self.config.language),
+                        f"[Cooldown Gate] Suppressed duplicate scan via {payload.source} ({int(elapsed_ms)}ms < {int(cooldown_ms)}ms, previous was {self._last_scan_source})",
+                    )
+                    return
+
+            # Otherwise, update tracker before releasing lock
+            self._last_scan_timestamp = time.monotonic()
+            self._last_scan_text = canonical_content
+            self._last_scan_source = payload.source
+            self.dedup.check_and_record(canonical_content, source=payload.source)
 
         # ----------------------------------------------------------------------
-        # 4. Format / Symbology Filter
+        # 3. Format / Symbology Filter
         # ----------------------------------------------------------------------
         if self.config.allowed_formats.lower() != "all" and payload.format:
             allowed = [f.strip().lower() for f in self.config.allowed_formats.split(",")]
@@ -1308,7 +1464,7 @@ class MainWindow(QMainWindow):
                 return
 
         # ----------------------------------------------------------------------
-        # 5. Content Transformations (Trim, Newline replace, Regex)
+        # 4. Content Transformations (Trim, Newline replace, Regex)
         # ----------------------------------------------------------------------
         final_text = canonical_content
 
@@ -1329,48 +1485,10 @@ class MainWindow(QMainWindow):
         payload.content = final_text
 
         # ----------------------------------------------------------------------
-        # 6. Output Mode Routing (Requirement 4)
+        # 5. Output Mode Routing (Specification 3)
         # ----------------------------------------------------------------------
-        out_mode = self.config.output_mode.strip().lower()
-        status_text = tr("status_typed", self.config.language)
-
         try:
-            if out_mode == "copy_only":
-                # Copy to clipboard ONLY. ZERO simulated keystrokes.
-                win32_set_clipboard_text(final_text)
-                status_text = tr("status_copied", self.config.language)
-
-            elif out_mode in ("clipboard_paste", "paste"):
-                # Fast Ctrl+V paste with optional suffix
-                self.injector.inject_scan(
-                    content=final_text,
-                    prefix_template=self.config.prefix,
-                    suffix_template=self.config.suffix,
-                    output_mode="paste",
-                    inter_key_delay_ms=self.config.inter_key_delay_ms,
-                    pre_typing_delay_ms=self.config.pre_typing_delay_ms,
-                    restore_clipboard=self.config.restore_clipboard,
-                    copy_to_clipboard=self.config.copy_to_clipboard,
-                )
-                status_text = tr("status_pasted", self.config.language)
-
-            elif out_mode == "log_only":
-                # History / Log only. Do not type or touch clipboard.
-                status_text = tr("status_logged", self.config.language)
-
-            else:
-                # Simulated Typing (SendInput Unicode)
-                self.injector.inject_scan(
-                    content=final_text,
-                    prefix_template=self.config.prefix,
-                    suffix_template=self.config.suffix,
-                    output_mode="type",
-                    inter_key_delay_ms=self.config.inter_key_delay_ms,
-                    pre_typing_delay_ms=self.config.pre_typing_delay_ms,
-                    copy_to_clipboard=self.config.copy_to_clipboard,
-                )
-                status_text = tr("status_typed", self.config.language)
-
+            status_text = self._dispatch_output(final_text, payload.source)
         except Exception as e:
             status_text = f"Error: {e}"
 
@@ -1524,9 +1642,10 @@ class MainWindow(QMainWindow):
         self.lbl_strip_mode.setText(tr("strip_mode", lang))
         self.lbl_strip_bt.setText(tr("strip_bt", lang))
         self.lbl_strip_http.setText(tr("strip_http", lang))
-        self.lbl_strip_stats.setText(tr("strip_stats", lang))
-        self.lbl_kpi_total_desc.setText(f"{tr('strip_total', lang)}:")
-        self.lbl_kpi_dedup_desc.setText(f"{tr('strip_dedup', lang)}:")
+        self.lbl_kpi_total_desc.setText(tr("kpi_total_scans", lang))
+        self.lbl_kpi_bt_desc.setText(tr("kpi_bt_scans", lang))
+        self.lbl_kpi_http_desc.setText(tr("kpi_http_scans", lang))
+        self.lbl_kpi_dedup_desc.setText(tr("kpi_dedup_blocked", lang))
         self._update_status_card_styles()
 
         # Tab titles
@@ -1560,6 +1679,8 @@ class MainWindow(QMainWindow):
         # Connection tab
         self.lbl_lan_ip_header.setText(tr("lbl_lan_ip", lang))
         self.btn_copy_active_url.setText(tr("btn_copy_url", lang))
+        if hasattr(self, "btn_copy_url"):
+            self.btn_copy_url.setText(tr("btn_copy_url", lang))
         self.qr_subtabs.setTabText(0, tr("subtab_qr_url", lang))
         self.qr_subtabs.setTabText(1, tr("subtab_qr_encode", lang))
         self.lbl_req_type_hdr.setText(tr("lbl_binaryeye_req_type", lang))
@@ -1583,7 +1704,9 @@ class MainWindow(QMainWindow):
 
         self.grp_dedup.setTitle(tr("sec_dedup", lang))
         self.chk_dedup.setText(tr("chk_dedup_enabled", lang))
-        self.lbl_dedup_win.setText(tr("lbl_dedup_window", lang))
+        self.lbl_dedup_win.setText(tr("lbl_dedup_interval", lang))
+        self.lbl_dedup_presets.setText(tr("lbl_dedup_presets", lang))
+        self.lbl_dedup_hint.setText(tr("desc_dedup_cooldown", lang))
 
         self.grp_wedge.setTitle(tr("sec_wedge", lang))
         self.lbl_out_mode.setText(tr("lbl_out_mode", lang))

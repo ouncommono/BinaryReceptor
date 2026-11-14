@@ -1,4 +1,4 @@
-"""Comprehensive bilingual localization dictionaries (English & Persian / فارسی) for BinaryReceptor v3.2.0.
+"""Comprehensive bilingual localization dictionaries (English & Persian / فارسی) for BinaryReceptor v3.3.0.
 
 Engineered with 100% key parity between 'en' and 'fa', natural professional phrasing,
 and complete isolation so English is 100% LTR and Persian is 100% RTL with zero mixed text.
@@ -10,7 +10,7 @@ from typing import Any
 TRANSLATIONS: dict[str, dict[str, str]] = {
     "en": {
         # App & Header
-        "app_title": "BinaryReceptor v3.2.0",
+        "app_title": "BinaryReceptor v3.3.0",
         "app_subtitle": "Desktop Companion Server for BinaryEye Android Barcode Scanner",
         "status_running": "SERVER ACTIVE",
         "status_stopped": "SERVER STOPPED",
@@ -66,6 +66,12 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "confirm_clear_log": "Are you sure you want to clear the entire activity log?",
         "export_success": "Successfully exported {count} scans to {path}",
 
+        # Live Scan KPI Cards
+        "kpi_total_scans": "Total Scans",
+        "kpi_bt_scans": "Bluetooth Scans",
+        "kpi_http_scans": "HTTP Scans",
+        "kpi_dedup_blocked": "Duplicates Prevented",
+
         # Prefix & Suffix Builder
         "wedge_title": "Visual Keystroke & Token Builder",
         "wedge_desc": "Configure keys or text typed before (Prefix) and after (Suffix) each scanned barcode. Click token chip buttons to append them instantly without typing raw escape sequences.",
@@ -99,16 +105,16 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "subtab_qr_encode": "2. Send Barcode (Raw Text)",
         "lbl_lan_ip": "Active PC Network Address:",
         "lbl_binaryeye_req_type": "BinaryEye Request Type (Settings -> Forwarding):",
-        "opt_req_post_json": "POST - JSON / Form (Recommended)",
-        "opt_req_post_form": "POST - application/x-www-form-urlencoded",
-        "opt_req_get_query": "GET - Full Query String",
-        "opt_req_get_append": "GET - Simply Add Content (Prefix Query)",
-        "opt_req_get_template": "GET - Custom Template ({RESULT}, {FORMAT}, {RESULT_BYTES})",
-        "desc_req_post_json": "In BinaryEye > Settings > Forwarding:\n1. Enable 'Forward scans'\n2. Set Request Type: 'POST application/json' (or Form)\n3. Set URL to the address below (or scan QR code)",
-        "desc_req_post_form": "In BinaryEye > Settings > Forwarding:\n1. Enable 'Forward scans'\n2. Set Request Type: 'POST application/x-www-form-urlencoded'\n3. Set URL to the address below",
-        "desc_req_get_query": "In BinaryEye > Settings > Forwarding:\n1. Enable 'Forward scans'\n2. Set Request Type: 'GET with full query string'\n3. Set URL to the address below (or scan QR code)",
-        "desc_req_get_append": "In BinaryEye > Settings > Forwarding:\n1. Enable 'Forward scans'\n2. Set Request Type: 'GET and simply add content'\n3. Set URL to the address below (or scan QR code)",
-        "desc_req_get_template": "In BinaryEye > Settings > Forwarding:\n1. Enable 'Forward scans'\n2. Set URL to the template URL below",
+        "opt_req_post_json": "POST application/json (Recommended)",
+        "opt_req_post_form": "POST application/x-www-form-urlencoded",
+        "opt_req_get_query": "GET with full query string",
+        "opt_req_get_append": "GET and simply add content",
+        "opt_req_get_template": "GET and simply add content (with {RESULT} template)",
+        "desc_req_post_json": "In BinaryEye > Settings > Forwarding:\n1. Enable 'Forward scans'\n2. Set Request type: 'POST application/json'\n3. Set URL to the base address below (or scan QR code)",
+        "desc_req_post_form": "In BinaryEye > Settings > Forwarding:\n1. Enable 'Forward scans'\n2. Set Request type: 'POST application/x-www-form-urlencoded'\n3. Set URL to the base address below",
+        "desc_req_get_query": "In BinaryEye > Settings > Forwarding:\n1. Enable 'Forward scans'\n2. Set Request type: 'GET with full query string'\n3. Set URL to the base address below",
+        "desc_req_get_append": "In BinaryEye > Settings > Forwarding:\n1. Enable 'Forward scans'\n2. Set Request type: 'GET and simply add content'\n3. Set URL to the address below (BinaryEye appends scanned content)",
+        "desc_req_get_template": "In BinaryEye > Settings > Forwarding:\n1. Enable 'Forward scans'\n2. Set Request type: 'GET and simply add content'\n3. Set URL to the template URL below with {RESULT}, {FORMAT}, and {RESULT_BYTES}",
         "lbl_http_url": "Configured Forwarding Endpoint:",
         "btn_copy_url": "Copy URL",
         "lbl_desc_qr_url": "Scan this QR code in BinaryEye or enter the URL manually in BinaryEye -> Settings -> Forwarding.",
@@ -150,6 +156,9 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
 
         "chk_dedup_enabled": "Enable Atomic Deduplication Filter",
         "lbl_dedup_window": "Deduplication Time Window (ms):",
+        "lbl_dedup_interval": "Duplicate Suppression Interval (ms):",
+        "lbl_dedup_presets": "Quick Presets:",
+        "desc_dedup_cooldown": "In Hybrid (Both) mode or rapid duplicate scanning, suppresses identical barcodes received via Bluetooth or HTTP within this cooldown interval.",
 
         "chk_trim_space": "Trim leading and trailing whitespace from barcode",
         "lbl_replace_newlines": "Replace Newline Characters With:",
@@ -255,6 +264,12 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "confirm_clear_log": "آیا از پاکسازی تمام رکوردهای جدول اسکن اطمینان دارید؟",
         "export_success": "تعداد {count} رکورد با موفقیت در فایل {path} ذخیره شد.",
 
+        # Live Scan KPI Cards
+        "kpi_total_scans": "کل اسکن‌ها",
+        "kpi_bt_scans": "اسکن‌های بلوتوث",
+        "kpi_http_scans": "اسکن‌های شبکه (HTTP)",
+        "kpi_dedup_blocked": "تکراری‌های فیلترشده",
+
         # Prefix & Suffix Builder
         "wedge_title": "تنظیم پیشوند و پسوند شبیه‌ساز صفحه‌کلید",
         "wedge_desc": "کلیدها یا متنی که مایلید قبل از بارکد (پیشوند) یا بعد از آن (پسوند) به صورت خودکار تایپ شوند را تعیین کنید. با کلیک بر روی کلیدها می‌توانید بدون نوشتن کدهای پیچیده آنها را اضافه نمایید.",
@@ -288,16 +303,16 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "subtab_qr_encode": "۲. ارسال بارکد دلخواه (متن خام)",
         "lbl_lan_ip": "آدرس کارت شبکه کامپیوتر (IP):",
         "lbl_binaryeye_req_type": "نوع درخواست BinaryEye (تنظیمات ← ارسال):",
-        "opt_req_post_json": "POST - ساختار JSON / Form (پیشنهادی)",
-        "opt_req_post_form": "POST - فرم اینترنتی (x-www-form-urlencoded)",
-        "opt_req_get_query": "GET - رشته پرسمان کامل (Full Query String)",
-        "opt_req_get_append": "GET - افزودن مستقیم مقدار (Simply Add Content)",
-        "opt_req_get_template": "GET - الگوی اختصاصی ({RESULT}، {FORMAT}، {RESULT_BYTES})",
-        "desc_req_post_json": "در برنامه BinaryEye (تنظیمات ← ارسال):\n۱. گزینه 'ارسال اسکن‌ها' را فعال کنید\n۲. نوع درخواست را روی 'POST application/json' (یا Form) قرار دهید\n۳. نشانی زیر را وارد نمایید (یا کد QR را اسکن کنید)",
-        "desc_req_post_form": "در برنامه BinaryEye (تنظیمات ← ارسال):\n۱. گزینه 'ارسال اسکن‌ها' را فعال کنید\n۲. نوع درخواست را روی 'POST application/x-www-form-urlencoded' قرار دهید\n۳. نشانی زیر را وارد نمایید",
-        "desc_req_get_query": "در برنامه BinaryEye (تنظیمات ← ارسال):\n۱. گزینه 'ارسال اسکن‌ها' را فعال کنید\n۲. نوع درخواست را روی 'GET with full query string' قرار دهید\n۳. نشانی زیر را وارد نمایید (یا کد QR را اسکن کنید)",
-        "desc_req_get_append": "در برنامه BinaryEye (تنظیمات ← ارسال):\n۱. گزینه 'ارسال اسکن‌ها' را فعال کنید\n۲. نوع درخواست را روی 'GET and simply add content' قرار دهید\n۳. نشانی زیر را وارد نمایید (یا کد QR را اسکن کنید)",
-        "desc_req_get_template": "در برنامه BinaryEye (تنظیمات ← ارسال):\n۱. گزینه 'ارسال اسکن‌ها' را فعال کنید\n۲. نشانی الگوی زیر را در فیلد URL وارد نمایید",
+        "opt_req_post_json": "POST application/json (پیشنهادی)",
+        "opt_req_post_form": "POST application/x-www-form-urlencoded",
+        "opt_req_get_query": "GET with full query string (پرسمان کامل)",
+        "opt_req_get_append": "GET and simply add content (افزودن مستقیم مقدار)",
+        "opt_req_get_template": "GET and simply add content (با الگوی {RESULT})",
+        "desc_req_post_json": "در برنامه BinaryEye (تنظیمات ← ارسال):\n۱. گزینه 'ارسال اسکن‌ها' را روشن کنید\n۲. نوع درخواست را روی 'POST application/json' بگذارید\n۳. نشانی سرور را وارد نمایید (یا کد QR را اسکن کنید)",
+        "desc_req_post_form": "در برنامه BinaryEye (تنظیمات ← ارسال):\n۱. گزینه 'ارسال اسکن‌ها' را روشن کنید\n۲. نوع درخواست را روی 'POST application/x-www-form-urlencoded' بگذارید\n۳. نشانی سرور را وارد نمایید",
+        "desc_req_get_query": "در برنامه BinaryEye (تنظیمات ← ارسال):\n۱. گزینه 'ارسال اسکن‌ها' را روشن کنید\n۲. نوع درخواست را روی 'GET with full query string' بگذارید\n۳. نشانی سرور را وارد نمایید",
+        "desc_req_get_append": "در برنامه BinaryEye (تنظیمات ← ارسال):\n۱. گزینه 'ارسال اسکن‌ها' را روشن کنید\n۲. نوع درخواست را روی 'GET and simply add content' بگذارید\n۳. نشانی زیر را وارد نمایید (BinaryEye محتوای بارکد را به انتهای نشانی می‌افزاید)",
+        "desc_req_get_template": "در برنامه BinaryEye (تنظیمات ← ارسال):\n۱. گزینه 'ارسال اسکن‌ها' را روشن کنید\n۲. نوع درخواست را روی 'GET and simply add content' بگذارید\n۳. نشانی زیر را وارد نمایید که شامل متغیرهای {RESULT}، {FORMAT} و {RESULT_BYTES} است",
         "lbl_http_url": "نشانی کامل سرور جهت تنظیم در گوشی:",
         "btn_copy_url": "کپی کردن آدرس",
         "lbl_desc_qr_url": "این کد QR را در گوشی اسکن نمایید یا نشانی فوق را به صورت دستی در BinaryEye ← تنظیمات ← ارسال اسکن وارد کنید.",
@@ -339,6 +354,9 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
 
         "chk_dedup_enabled": "فعال‌سازی حذف خودکار اسکن‌های تکراری",
         "lbl_dedup_window": "بازه زمانی تشخیص تکراری (میلی‌ثانیه):",
+        "lbl_dedup_interval": "فاصله زمانی جلوگیری از تکرار (میلی‌ثانیه):",
+        "lbl_dedup_presets": "پیش‌تنظیم‌های سریع:",
+        "desc_dedup_cooldown": "در حالت ترکیبی (بلوتوث و شبکه همزمان) یا ارسال مجدد یک کد، از ورود داده‌های تکراری در این بازه زمانی جلوگیری می‌کند.",
 
         "chk_trim_space": "حذف خودکار فاصله‌های اضافه از ابتدا و انتهای بارکد",
         "lbl_replace_newlines": "جایگزینی خطوط جدید درون بارکد با:",

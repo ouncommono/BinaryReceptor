@@ -174,6 +174,26 @@ QPushButton#MasterPowerBtnStopped:hover {{
     font-weight: bold;
 }}
 
+/* Scans Statistics Header in Live Scan Activity Tab */
+#StatsSummaryCard {{
+    background-color: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 8px;
+}}
+
+.MiniKpiCard {{
+    background-color: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 6px;
+    padding: 6px 12px;
+}}
+
+.MiniKpiTitle {{
+    color: #94a3b8;
+    font-size: 11px;
+    font-weight: 600;
+}}
+
 /* Status Badges */
 .StatusBadge {{
     background-color: #334155;
@@ -585,6 +605,26 @@ QPushButton#MasterPowerBtnStopped:hover {{
     color: #0f172a;
     font-size: 20px;
     font-weight: bold;
+}}
+
+/* Scans Statistics Header in Live Scan Activity Tab */
+#StatsSummaryCard {{
+    background-color: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+}}
+
+.MiniKpiCard {{
+    background-color: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    padding: 6px 12px;
+}}
+
+.MiniKpiTitle {{
+    color: #64748b;
+    font-size: 11px;
+    font-weight: 600;
 }}
 
 /* Status Badges */

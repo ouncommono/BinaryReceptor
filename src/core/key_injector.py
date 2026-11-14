@@ -318,7 +318,7 @@ class KeyInjector:
         if copy_to_clipboard and not self.dry_run:
             win32_set_clipboard_text(content)
 
-        if output_mode in ("copy_only", "clipboard_only"):
+        if output_mode in ("copy_only", "clipboard_only", "copy"):
             if not self.dry_run:
                 win32_set_clipboard_text(content)
             else:
