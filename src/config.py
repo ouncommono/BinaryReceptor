@@ -1,4 +1,4 @@
-"""Configuration manager for BinaryReceptor v3.1.0.
+"""Configuration manager for BinaryReceptor v3.2.0.
 
 Provides deterministic settings.ini path resolution (alongside the executable),
 automatic default generation with comprehensive comments, live file-watcher hot-reload,
@@ -62,7 +62,7 @@ language = en
 theme = dark
 
 # Automatically start listeners when application launches
-auto_start = true
+auto_start = false
 
 # Start application minimized directly to system tray
 start_minimized = false
@@ -324,7 +324,7 @@ class AppConfig:
     mode: str = "both"  # "bluetooth", "http", "both"
     language: str = "en"  # "en", "fa"
     theme: str = "dark"  # "dark", "light", "system"
-    auto_start: bool = True
+    auto_start: bool = False
     start_minimized: bool = False
     minimize_to_tray: bool = True
     start_with_windows: bool = False

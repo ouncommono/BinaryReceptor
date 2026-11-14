@@ -15,6 +15,9 @@ on:
 permissions:
   contents: write
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
 jobs:
   build-windows:
     name: Build Windows Executable
@@ -46,21 +49,21 @@ jobs:
       - name: Package Portable Distribution Zip
         shell: pwsh
         run: |
-          Compress-Archive -Path dist/BinaryReceptor.exe,dist/settings.ini -DestinationPath dist/BinaryReceptor-v3.1.0-win64.zip
+          Compress-Archive -Path dist/BinaryReceptor.exe,dist/settings.ini -DestinationPath dist/BinaryReceptor-v3.2.0-win64.zip
 
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: BinaryReceptor-v3.1.0-win64
+          name: BinaryReceptor-v3.2.0-win64
           path: |
             dist/BinaryReceptor.exe
             dist/settings.ini
-            dist/BinaryReceptor-v3.1.0-win64.zip
+            dist/BinaryReceptor-v3.2.0-win64.zip
 
   publish-release:
     name: Publish GitHub Release
     needs: build-windows
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
     runs-on: windows-latest
     permissions:
       contents: write
@@ -69,7 +72,7 @@ jobs:
       - name: Download Build Artifacts
         uses: actions/download-artifact@v4
         with:
-          name: BinaryReceptor-v3.1.0-win64
+          name: BinaryReceptor-v3.2.0-win64
           path: release_assets
 
       - name: Publish Release to GitHub
@@ -77,5 +80,5 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         shell: pwsh
         run: |
-          $tag = $env:GITHUB_REF_NAME
-          gh release create $tag release_assets/BinaryReceptor-v3.1.0-win64.zip release_assets/BinaryReceptor.exe release_assets/settings.ini --title "BinaryReceptor $tag" --generate-notes
+          $tag = if ($env:GITHUB_REF_TYPE -eq 'tag') { $env:GITHUB_REF_NAME } else { "v3.2.0" }
+          gh release create $tag release_assets/BinaryReceptor-v3.2.0-win64.zip release_assets/BinaryReceptor.exe release_assets/settings.ini --title "BinaryReceptor $tag" --generate-notes --latest --clobber
