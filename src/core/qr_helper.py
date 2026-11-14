@@ -1,21 +1,30 @@
-"""Dynamic QR Code generator and BinaryEye Deep Link helper for BinaryReceptor v3.0.0.
+"""Dynamic QR Code generator and BinaryEye connection assistant for BinaryReceptor v3.2.0.
 
 Provides:
   - Local LAN IP address auto-detection prioritizing active Wi-Fi and Ethernet interfaces.
-  - Tab 1: Standard HTTP Forwarding URL (http://<LAN_IP>:<PORT>/).
-  - Tab 2: 1-Scan Continuous Mode Deep Link (binaryeye://scan?continuous=true&callback=...).
-  - Tab 3: Encode Text to Phone Barcode (binaryeye://encode?content=...&format=...&execute=true).
-  - High-DPI QPixmap / PIL Image generation.
+  - Forwarding URL generator for all 4 BinaryEye HTTP Request Types:
+      1. POST - JSON / Form (Recommended) -> http://<IP>:<PORT>/
+      2. GET - Full Query String -> http://<IP>:<PORT>/
+      3. GET - Simply Add Content (Prefix Query) -> http://<IP>:<PORT>/?content=
+      4. GET - Custom Template -> http://<IP>:<PORT>/?content={RESULT}&format={FORMAT}&raw={RESULT_BYTES}
+  - Pure-Python zero-dependency PNG synthesis directly from boolean matrices using built-in zlib.
+  - Barcode generator for 11 symbologies.
 """
 from __future__ import annotations
 
 import io
 import socket
+import struct
 import urllib.parse
+import zlib
 from typing import Any
 
 import qrcode
-from PIL import Image
+
+try:
+    from PIL import Image
+except ImportError:
+    Image = None
 
 try:
     import psutil
@@ -122,22 +131,19 @@ def get_primary_lan_ip() -> str:
     return ips[0]["ip"] if ips else "127.0.0.1"
 
 
-def build_forwarding_url(ip: str, port: int) -> str:
-    """Build standard HTTP Forwarding URL: http://<IP>:<PORT>/."""
+def build_forwarding_url(ip: str, port: int, request_type: str = "post_json") -> str:
+    """Build BinaryEye HTTP Forwarding URL matching one of the 4 BinaryEye request modes."""
     clean_ip = ip.strip() or "127.0.0.1"
-    return f"http://{clean_ip}:{port}/"
-
-
-def build_continuous_scan_url(ip: str, port: int) -> str:
-    """Build 1-scan BinaryEye continuous scan callback deep link.
-
-    Format:
-      binaryeye://scan?continuous=true&callback=http%3A%2F%2F<IP>%3A<PORT>%2Fscan
-    """
-    clean_ip = ip.strip() or "127.0.0.1"
-    raw_callback = f"http://{clean_ip}:{port}/scan"
-    encoded_callback = urllib.parse.quote(raw_callback, safe="")
-    return f"binaryeye://scan?continuous=true&callback={encoded_callback}"
+    req_type = request_type.lower().strip()
+    if req_type in ("get_template", "template"):
+        return f"http://{clean_ip}:{port}/?content={{RESULT}}&format={{FORMAT}}&raw={{RESULT_BYTES}}"
+    elif req_type in ("get_append", "get_add", "append", "prefix"):
+        return f"http://{clean_ip}:{port}/?content="
+    elif req_type in ("scan", "post_scan"):
+        return f"http://{clean_ip}:{port}/scan"
+    else:
+        # Default for post_json, post_form, post, get_query, root:
+        return f"http://{clean_ip}:{port}/"
 
 
 def build_encode_url(content: str, format_name: str = "QR_CODE") -> str:
@@ -151,14 +157,44 @@ def build_encode_url(content: str, format_name: str = "QR_CODE") -> str:
     return f"binaryeye://encode?content={encoded_content}&format={clean_format}&execute=true"
 
 
-def generate_qr_image(
-    data: str,
-    box_size: int = 8,
-    border: int = 2,
-    fill_color: str = "black",
-    back_color: str = "white",
-) -> Image.Image:
-    """Generate PIL Image containing QR Code."""
+def matrix_to_png_bytes(matrix: list[list[bool]], box_size: int = 8, border: int = 2) -> bytes:
+    """Pure-Python pixel-perfect PNG synthesis directly from boolean matrix using built-in zlib."""
+    dim = len(matrix)
+    width = (dim + 2 * border) * box_size
+    height = width
+
+    raw_scanlines = bytearray()
+    for y in range(height):
+        raw_scanlines.append(0)  # Filter byte 0 (None)
+        module_y = (y // box_size) - border
+        for x in range(width):
+            module_x = (x // box_size) - border
+            if 0 <= module_y < dim and 0 <= module_x < dim and matrix[module_y][module_x]:
+                raw_scanlines.append(0)  # Black pixel
+            else:
+                raw_scanlines.append(255)  # White pixel
+
+    compressed_idat = zlib.compress(bytes(raw_scanlines), level=9)
+
+    def _chunk(tag: bytes, data: bytes) -> bytes:
+        return (
+            struct.pack(">I", len(data))
+            + tag
+            + data
+            + struct.pack(">I", zlib.crc32(tag + data) & 0xFFFFFFFF)
+        )
+
+    out = bytearray(b"\x89PNG\r\n\x1a\n")
+    # IHDR: width, height, bit_depth=8, color_type=0 (grayscale), compression=0, filter=0, interlace=0
+    ihdr_data = struct.pack(">IIBBBBB", width, height, 8, 0, 0, 0, 0)
+    out.extend(_chunk(b"IHDR", ihdr_data))
+    out.extend(_chunk(b"IDAT", compressed_idat))
+    out.extend(_chunk(b"IEND", b""))
+    return bytes(out)
+
+
+def generate_qr_png_bytes(data: str, box_size: int = 8, border: int = 2) -> bytes:
+    """Generate raw PNG bytes for a QR code in pure Python without heavy Pillow dependencies."""
     qr = qrcode.QRCode(
         version=None,
         error_correction=qrcode.constants.ERROR_CORRECT_M,
@@ -167,13 +203,19 @@ def generate_qr_image(
     )
     qr.add_data(data)
     qr.make(fit=True)
-    img = qr.make_image(fill_color=fill_color, back_color=back_color)
-    return img.convert("RGBA")
+    matrix = qr.get_matrix()
+    return matrix_to_png_bytes(matrix, box_size=box_size, border=border)
 
 
-def generate_qr_png_bytes(data: str, box_size: int = 8, border: int = 2) -> bytes:
-    """Generate raw PNG bytes for a QR code."""
-    img = generate_qr_image(data, box_size=box_size, border=border)
-    buf = io.BytesIO()
-    img.save(buf, format="PNG")
-    return buf.getvalue()
+def generate_qr_image(
+    data: str,
+    box_size: int = 8,
+    border: int = 2,
+    fill_color: str = "black",
+    back_color: str = "white",
+) -> Any:
+    """Generate PIL Image containing QR Code if PIL is available, or return synthesized PNG bytes."""
+    png_bytes = generate_qr_png_bytes(data, box_size=box_size, border=border)
+    if Image is not None:
+        return Image.open(io.BytesIO(png_bytes)).convert("RGBA")
+    return png_bytes

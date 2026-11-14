@@ -1,4 +1,4 @@
-"""Tests for dynamic QR Code generation and BinaryEye deep-link formatting."""
+"""Tests for dynamic QR Code generation and BinaryEye forwarding URL formatting."""
 from __future__ import annotations
 
 import io
@@ -6,26 +6,33 @@ from PIL import Image
 
 from src.core.qr_helper import (
     build_forwarding_url,
-    build_continuous_scan_url,
     build_encode_url,
     generate_qr_image,
     generate_qr_png_bytes,
+    matrix_to_png_bytes,
     get_active_lan_ips,
+    get_primary_lan_ip,
     BINARYEYE_FORMATS,
 )
 
 
-def test_build_forwarding_url():
-    url = build_forwarding_url("192.168.1.100", 24234)
-    assert url == "http://192.168.1.100:24234/"
+def test_build_forwarding_url_modes():
+    """Verify BinaryEye URL formatting for all 4 request types."""
+    # 1. POST JSON / Form (Recommended)
+    url_json = build_forwarding_url("192.168.1.100", 24234, "post_json")
+    assert url_json == "http://192.168.1.100:24234/"
 
+    # 2. GET with full query string
+    url_query = build_forwarding_url("192.168.1.100", 24234, "get_query")
+    assert url_query == "http://192.168.1.100:24234/"
 
-def test_build_continuous_scan_deep_link():
-    """Verify BinaryEye native continuous scan callback deep-link format."""
-    deep_link = build_continuous_scan_url("192.168.1.50", 24234)
-    expected_prefix = "binaryeye://scan?continuous=true&callback="
-    assert deep_link.startswith(expected_prefix)
-    assert "http%3A%2F%2F192.168.1.50%3A24234%2Fscan" in deep_link
+    # 3. GET and simply add content (prefix query)
+    url_append = build_forwarding_url("192.168.1.100", 24234, "get_append")
+    assert url_append == "http://192.168.1.100:24234/?content="
+
+    # 4. GET with custom template
+    url_template = build_forwarding_url("192.168.1.100", 24234, "get_template")
+    assert url_template == "http://192.168.1.100:24234/?content={RESULT}&format={FORMAT}&raw={RESULT_BYTES}"
 
 
 def test_build_encode_deep_link():
@@ -39,8 +46,24 @@ def test_build_encode_deep_link():
         assert "execute=true" in url
 
 
+def test_pure_python_png_matrix_synthesis():
+    """Verify built-in zlib PNG generator produces a valid PNG with correct dimensions."""
+    matrix = [
+        [True, False, True],
+        [False, True, False],
+        [True, True, True],
+    ]
+    png_bytes = matrix_to_png_bytes(matrix, box_size=4, border=1)
+    assert png_bytes.startswith(b"\x89PNG\r\n\x1a\n")
+    assert len(png_bytes) > 50
+
+    img = Image.open(io.BytesIO(png_bytes))
+    expected_dim = (3 + 2 * 1) * 4  # (dim + 2*border) * box_size = 5 * 4 = 20
+    assert img.size == (expected_dim, expected_dim)
+
+
 def test_qr_image_generation():
-    """Verify QR code PIL image and PNG bytes are valid and decodable."""
+    """Verify QR code PNG bytes are valid and decodable."""
     png_bytes = generate_qr_png_bytes("https://github.com/ouncommono/BinaryReceptor")
     assert len(png_bytes) > 100
     assert png_bytes.startswith(b"\x89PNG\r\n\x1a\n")
@@ -55,3 +78,7 @@ def test_lan_ip_detection():
     ips = get_active_lan_ips()
     assert len(ips) >= 1
     assert any(ip["is_primary"] for ip in ips)
+
+    primary = get_primary_lan_ip()
+    assert primary
+    assert not primary.startswith("127.") or len(ips) == 1
