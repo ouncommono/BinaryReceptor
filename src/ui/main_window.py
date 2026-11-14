@@ -1,4 +1,4 @@
-"""World-class bilingual (Persian RTL & English LTR) dashboard for BinaryReceptor v3.4.0."""
+"""World-class bilingual (Persian RTL & English LTR) dashboard for BinaryReceptor v3.5.0."""
 from __future__ import annotations
 
 import csv
@@ -112,7 +112,7 @@ class MainWindowSignals(QObject):
 
 
 class MainWindow(QMainWindow):
-    """Bilingual desktop companion server GUI for BinaryEye v3.1.0."""
+    """Bilingual desktop companion server GUI for BinaryEye v3.5.0."""
 
     def __init__(self, config_manager: ConfigManager) -> None:
         super().__init__()
@@ -227,10 +227,11 @@ class MainWindow(QMainWindow):
 
         header_layout.addStretch()
 
-        # Master Power Button (Mandate 6: Explicit initial text and minimum dimensions)
+        # Master Power Button (Mandate 5: Strict Static Dimensions, No Inflation)
         self.btn_master_power = QPushButton(f"▶ {tr('btn_start', self.config.language)}")
         self.btn_master_power.setObjectName("MasterPowerBtnStopped")
-        self.btn_master_power.setMinimumSize(140, 38)
+        self.btn_master_power.setFixedSize(140, 38)
+        self.btn_master_power.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
         self.btn_master_power.clicked.connect(self.toggle_server)
         header_layout.addWidget(self.btn_master_power)
 
@@ -566,9 +567,7 @@ class MainWindow(QMainWindow):
         self.grp_preview = QGroupBox(tr("lbl_preview", self.config.language))
         pr_layout = QVBoxLayout(self.grp_preview)
         self.lbl_preview_text = QLabel()
-        self.lbl_preview_text.setStyleSheet(
-            "font-family: Consolas, monospace; font-size: 14px; color: #38bdf8; background: #0b1120; border: 1px solid #1e293b; border-radius: 6px; padding: 12px; min-height: 48px;"
-        )
+        self.lbl_preview_text.setObjectName("LivePreviewBox")
         self.lbl_preview_text.setWordWrap(True)
         pr_layout.addWidget(self.lbl_preview_text)
         layout.addWidget(self.grp_preview)
@@ -695,7 +694,8 @@ class MainWindow(QMainWindow):
 
         url_row = QHBoxLayout()
         self.txt_url_display = QLineEdit()
-        self.txt_url_display.setReadOnly(True)
+        self.txt_url_display.setReadOnly(False)
+        self.txt_url_display.textEdited.connect(self._on_forwarding_url_edited)
         url_row.addWidget(self.txt_url_display, stretch=1)
         self.btn_copy_url = QPushButton(tr("btn_copy_url", self.config.language))
         self.btn_copy_url.setObjectName("SecondaryBtn")
@@ -781,6 +781,16 @@ class MainWindow(QMainWindow):
         pm.loadFromData(png)
         self.lbl_qr_encode_img.setPixmap(pm.scaled(200, 200, Qt.AspectRatioMode.KeepAspectRatio))
 
+    def _on_forwarding_url_edited(self, url: str) -> None:
+        """Mandate 4: Dynamically update QR code when forwarding URL is manually edited."""
+        cleaned_url = url.strip()
+        if not cleaned_url:
+            return
+        png = generate_qr_png_bytes(cleaned_url, box_size=5, border=1)
+        pm = QPixmap()
+        pm.loadFromData(png)
+        self.lbl_qr_url_img.setPixmap(pm.scaled(200, 200, Qt.AspectRatioMode.KeepAspectRatio))
+
     def _copy_http_forwarding_url(self) -> None:
         url = self.txt_url_display.text()
         QApplication.clipboard().setText(url)
@@ -819,11 +829,14 @@ class MainWindow(QMainWindow):
         self.chk_auto_start_srv = QCheckBox(tr("chk_auto_start", self.config.language))
         gl.addWidget(self.chk_auto_start_srv, 1, 0, 1, 2)
 
+        self.chk_start_min = QCheckBox(tr("chk_start_min", self.config.language))
+        gl.addWidget(self.chk_start_min, 2, 0, 1, 2)
+
         self.chk_start_windows = QCheckBox(tr("chk_start_windows", self.config.language))
-        gl.addWidget(self.chk_start_windows, 2, 0, 1, 2)
+        gl.addWidget(self.chk_start_windows, 3, 0, 1, 2)
 
         self.chk_min_tray = QCheckBox(tr("chk_min_tray", self.config.language))
-        gl.addWidget(self.chk_min_tray, 3, 0, 1, 2)
+        gl.addWidget(self.chk_min_tray, 4, 0, 1, 2)
 
         # Sound Beep + Test Sound Button
         sound_row = QHBoxLayout()
@@ -834,7 +847,7 @@ class MainWindow(QMainWindow):
         self.btn_test_sound.clicked.connect(lambda: play_scanner_beep())
         sound_row.addWidget(self.btn_test_sound)
         sound_row.addStretch()
-        gl.addLayout(sound_row, 4, 0, 1, 2)
+        gl.addLayout(sound_row, 5, 0, 1, 2)
 
         layout.addWidget(self.grp_gen)
 
@@ -1005,6 +1018,7 @@ class MainWindow(QMainWindow):
 
         self.combo_mode.currentIndexChanged.connect(_mark_dirty)
         self.chk_auto_start_srv.stateChanged.connect(_mark_dirty)
+        self.chk_start_min.stateChanged.connect(_mark_dirty)
         self.chk_start_windows.stateChanged.connect(_mark_dirty)
         self.chk_min_tray.stateChanged.connect(_mark_dirty)
         self.chk_beep.stateChanged.connect(_mark_dirty)
@@ -1031,6 +1045,7 @@ class MainWindow(QMainWindow):
                 self.combo_mode.setCurrentIndex(idx_m)
 
             self.chk_auto_start_srv.setChecked(cfg.auto_start)
+            self.chk_start_min.setChecked(cfg.start_minimized)
             self.chk_start_windows.setChecked(cfg.start_with_windows)
             self.chk_min_tray.setChecked(cfg.minimize_to_tray)
             self.chk_beep.setChecked(cfg.audio_feedback)
@@ -1084,6 +1099,7 @@ class MainWindow(QMainWindow):
             http_host=new_host,
             http_port=new_port,
             auto_start=self.chk_auto_start_srv.isChecked(),
+            start_minimized=self.chk_start_min.isChecked(),
             start_with_windows=self.chk_start_windows.isChecked(),
             minimize_to_tray=self.chk_min_tray.isChecked(),
             audio_feedback=self.chk_beep.isChecked(),
@@ -1267,7 +1283,9 @@ class MainWindow(QMainWindow):
         else:
             self.btn_master_power.setObjectName("MasterPowerBtnStopped")
             self.btn_master_power.setText(f"▶ {tr('btn_start', self.config.language)}")
+        self.btn_master_power.setFixedSize(140, 38)
         self.btn_master_power.setStyle(self.btn_master_power.style())
+        self.btn_master_power.setFixedSize(140, 38)
 
     def _update_status_card_styles(self) -> None:
         """Requirement 6 & 9: Dynamically update colors and text of compact top status bar pills."""
@@ -1663,6 +1681,7 @@ class MainWindow(QMainWindow):
         self.lbl_app_title.setText(tr("app_title", lang))
         self.lbl_app_subtitle.setText(tr("app_subtitle", lang))
         self.btn_lang_toggle.setText(tr("lang_switch", lang))
+        self.btn_theme_toggle.setText(tr("btn_theme_dark" if self.config.theme == "light" else "btn_theme_light", lang))
         self._update_power_button()
 
         # Compact Top Status Strip
@@ -1721,6 +1740,7 @@ class MainWindow(QMainWindow):
         self.grp_gen.setTitle(tr("sec_general", lang))
         self.lbl_mode_setting.setText(tr("lbl_mode", lang))
         self.chk_auto_start_srv.setText(tr("chk_auto_start", lang))
+        self.chk_start_min.setText(tr("chk_start_min", lang))
         self.chk_start_windows.setText(tr("chk_start_windows", lang))
         self.chk_min_tray.setText(tr("chk_min_tray", lang))
         self.chk_beep.setText(tr("chk_beep", lang))
@@ -1843,10 +1863,10 @@ class MainWindow(QMainWindow):
         self.config.theme = theme
         if theme == "light":
             QApplication.instance().setStyleSheet(LIGHT_STYLESHEET)
-            self.btn_theme_toggle.setText("🌙 Dark")
+            self.btn_theme_toggle.setText(tr("btn_theme_dark", self.config.language))
         else:
             QApplication.instance().setStyleSheet(DARK_STYLESHEET)
-            self.btn_theme_toggle.setText("☀️ Light")
+            self.btn_theme_toggle.setText(tr("btn_theme_light", self.config.language))
         self._update_status_card_styles()
 
     # ==========================================================================
@@ -1891,30 +1911,22 @@ class MainWindow(QMainWindow):
         self.tray.update_state(self.is_server_active, self.config.mode, self.config.language)
 
     def showEvent(self, event) -> None:
-        """Mandate 6: Ensure geometry is accurately updated immediately upon initial display."""
+        """Mandate 5 & 6: Ensure window rendering completes cleanly with fixed button dimensions."""
         super().showEvent(event)
-        self.btn_master_power.updateGeometry()
-        if self.centralWidget() and self.centralWidget().layout():
-            self.centralWidget().layout().activate()
         QApplication.processEvents()
-        QTimer.singleShot(0, self._ensure_initial_geometry)
 
     def _ensure_initial_geometry(self) -> None:
         """Explicit geometry recalculation callback after initial rendering frame."""
-        self.btn_master_power.updateGeometry()
-        if self.centralWidget() and self.centralWidget().layout():
-            self.centralWidget().layout().activate()
+        pass
 
     def _on_hid_scan_intercepted(self, text: str) -> None:
-        """Invoked when the low-level keyboard hook intercepts an HID barcode in copy-only mode (Mandate 3)."""
-        payload = ScanPayload(content=text, source="Bluetooth (HID)")
-        status_text = tr("status_copied", self.config.language)
-        self.cnt_total += 1
-        self.cnt_bt += 1
-        self.signals.stats_updated.emit()
-        self.signals.scan_received.emit(payload, status_text, "Intercepted raw HID barcode and routed to clipboard")
-        if self.config.audio_feedback:
-            play_scanner_beep()
+        """Invoked when the low-level keyboard hook intercepts an HID barcode (Mandates 1, 2, 3)."""
+        payload = ScanPayload(
+            content=text,
+            source="Bluetooth",
+            client_address="Bluetooth HID",
+        )
+        self.enqueue_scan(payload)
 
     def closeEvent(self, event) -> None:
         if self.config.minimize_to_tray:
@@ -1930,6 +1942,9 @@ class MainWindow(QMainWindow):
             self.exit_application()
 
     def exit_application(self) -> None:
+        if hasattr(self, "tray") and self.tray:
+            self.tray.hide()
+            self.tray.cleanup()
         if hasattr(self, "hid_interceptor"):
             self.hid_interceptor.stop()
         self.stop_server()

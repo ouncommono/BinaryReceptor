@@ -1,4 +1,4 @@
-"""Comprehensive bilingual localization dictionaries (English & Persian / فارسی) for BinaryReceptor v3.4.0.
+"""Comprehensive bilingual localization dictionaries (English & Persian / فارسی) for BinaryReceptor v3.5.0.
 
 Engineered with 100% key parity between 'en' and 'fa', natural professional phrasing,
 and complete isolation so English is 100% LTR and Persian is 100% RTL with zero mixed text.
@@ -10,7 +10,7 @@ from typing import Any
 TRANSLATIONS: dict[str, dict[str, str]] = {
     "en": {
         # App & Header
-        "app_title": "BinaryReceptor v3.4.0",
+        "app_title": "BinaryReceptor v3.5.0",
         "app_subtitle": "Desktop Companion Server for BinaryEye Android Barcode Scanner",
         "status_running": "SERVER ACTIVE",
         "status_stopped": "SERVER STOPPED",
@@ -22,6 +22,8 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "status_disabled": "Disabled by Mode",
         "btn_start": "Start Server",
         "btn_stop": "Stop Server",
+        "btn_theme_dark": "🌙 Dark Theme",
+        "btn_theme_light": "☀️ Light Theme",
         "theme_dark": "Dark Theme",
         "theme_light": "Light Theme",
         "theme_system": "System Default",
@@ -40,11 +42,11 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "badge_bt": "Bluetooth RFCOMM",
         "badge_http": "HTTP Server",
 
-        # Tab Titles
+        # Tab Titles (Mandate 6: Connection / QR Code & Settings / Hardware)
         "tab_dashboard": "Live Scan Activity",
         "tab_wedge": "Prefix / Suffix Builder",
-        "tab_connection": "Connection & QR Code",
-        "tab_settings": "Settings & Hardware",
+        "tab_connection": "Connection / QR Code",
+        "tab_settings": "Settings / Hardware",
 
         # Dashboard / Activity Log
         "col_time": "Timestamp",
@@ -131,7 +133,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "grp_feedback": "Audio & UI Feedback",
         "grp_system": "System & Windows Integration",
 
-        # Settings Group Section Headers (Mandate 7)
+        # Settings Group Section Headers
         "sec_general": "General & Operation Mode",
         "sec_network": "Network & HTTP Server",
         "sec_dedup": "Smart Deduplication & Cooldown Gate",
@@ -203,7 +205,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "settings_reset": "Settings have been reset to factory defaults and applied.",
 
         # System Tray Menu
-        "tray_title": "BinaryReceptor v3.4.0",
+        "tray_title": "BinaryReceptor v3.5.0",
         "tray_status_header": "Status: {status}",
         "tray_start": "Start Server",
         "tray_stop": "Stop Server",
@@ -211,14 +213,14 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "tray_mode_both": "Mode: Hybrid (Bluetooth + HTTP)",
         "tray_mode_http": "Mode: HTTP Only",
         "tray_mode_bt": "Mode: Bluetooth Only",
-        "tray_show_qr": "Show QR Codes & Instructions...",
+        "tray_show_qr": "Show QR Codes / Connection...",
         "tray_show_window": "Open BinaryReceptor Window",
         "tray_exit": "Exit Application",
         "toast_scan_title": "Barcode Received ({source})",
     },
     "fa": {
         # App & Header
-        "app_title": "باینری‌رسپتور v3.4.0 (BinaryReceptor)",
+        "app_title": "باینری‌رسپتور v3.5.0 (BinaryReceptor)",
         "app_subtitle": "سرور همراه ویندوز برای اسکنر بارکد گوشی اندروید BinaryEye",
         "status_running": "سرور فعال است",
         "status_stopped": "سرور متوقف شد",
@@ -230,6 +232,8 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "status_disabled": "غیرفعال بر اساس حالت",
         "btn_start": "شروع به کار سرور",
         "btn_stop": "توقف سرور",
+        "btn_theme_dark": "🌙 پوسته تیره",
+        "btn_theme_light": "☀️ پوسته روشن",
         "theme_dark": "پوسته تیره",
         "theme_light": "پوسته روشن",
         "theme_system": "پیش‌فرض سیستم",
@@ -248,11 +252,11 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "badge_bt": "بلوتوث RFCOMM",
         "badge_http": "سرور تحت شبکه HTTP",
 
-        # Tab Titles
+        # Tab Titles (Mandate 6: اتصال / کد QR و تنظیمات / سخت‌افزار)
         "tab_dashboard": "گزارش زنده اسکن‌ها",
-        "tab_wedge": "تنظیم پیشوند و پسوند (Prefix/Suffix)",
-        "tab_connection": "اتصال و کد QR",
-        "tab_settings": "تنظیمات و سخت‌افزار",
+        "tab_wedge": "تنظیم پیشوند و پسوند",
+        "tab_connection": "اتصال / کد QR",
+        "tab_settings": "تنظیمات / سخت‌افزار",
 
         # Dashboard / Activity Log
         "col_time": "زمان اسکن",
@@ -280,29 +284,29 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "kpi_http_scans": "اسکن‌های شبکه (HTTP)",
         "kpi_dedup_blocked": "تکراری‌های فیلترشده",
 
-        # Prefix & Suffix Builder
+        # Prefix & Suffix Builder (Mandate 6: پسوندها کاملاً فارسی)
         "wedge_title": "تنظیم پیشوند و پسوند شبیه‌ساز صفحه‌کلید",
         "wedge_desc": "کلیدها یا متنی که مایلید قبل از بارکد (پیشوند) یا بعد از آن (پسوند) به صورت خودکار تایپ شوند را تعیین کنید. با کلیک بر روی کلیدها می‌توانید بدون نوشتن کدهای پیچیده آنها را اضافه نمایید.",
         "lbl_prefix": "پیشوند (تایپ قبل از بارکد):",
         "lbl_suffix": "پسوند (تایپ بعد از بارکد):",
         "lbl_preview": "پیش‌نمایش زنده خروجی صفحه‌کلید:",
         "preset_custom": "ورودی سفارشی...",
-        "preset_none": "هیچ‌کدام (خالی)",
-        "preset_enter": "کلید اینتر (خط جدید)",
-        "preset_tab": "کلید تب (فیلد بعدی)",
+        "preset_none": "هیچ‌کدام (بدون پسوند)",
+        "preset_enter": "اینتر (سطر بعدی)",
+        "preset_tab": "تب (فیلد بعدی)",
         "preset_space": "فاصله (Space)",
-        "preset_double_enter": "دو بار اینتر (خط خالی)",
-        "preset_tab_enter": "کلید تب سپس اینتر",
-        "preset_backspace": "کلید Backspace (پاک کردن آخرین کاراکتر)",
+        "preset_double_enter": "دو بار اینتر (سطر خالی)",
+        "preset_tab_enter": "کلید تب و سپس اینتر",
+        "preset_backspace": "کلید Backspace (حذف آخرین کاراکتر)",
         "preset_esc": "کلید Escape (انصراف)",
         "preset_down": "کلید فلش رو به پایین (سطر بعدی)",
-        "btn_add_enter": "+ اینتر (Enter)",
-        "btn_add_tab": "+ تب (Tab)",
-        "btn_add_space": "+ فاصله (Space)",
-        "btn_add_backspace": "+ بک‌اسپیس",
+        "btn_add_enter": "+ اینتر",
+        "btn_add_tab": "+ تب",
+        "btn_add_space": "+ فاصله",
+        "btn_add_backspace": "+ حذف (Bksp)",
         "btn_add_esc": "+ خروج (Esc)",
         "btn_add_down": "+ فلش پایین",
-        "btn_add_date": "+ تاریخ امروز",
+        "btn_add_date": "+ تاریخ جاری",
         "btn_add_time": "+ زمان جاری",
         "btn_clear_field": "پاک کردن",
 
@@ -339,7 +343,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "grp_feedback": "صدا و اعلانات",
         "grp_system": "همگام‌سازی با ویندوز",
 
-        # Settings Group Section Headers (Mandate 7)
+        # Settings Group Section Headers
         "sec_general": "تنظیمات عمومی و حالت کاری",
         "sec_network": "تنظیمات شبکه و سرور HTTP",
         "sec_dedup": "فیلتر هوشمند ضدتکرار و بازه زمانی",
@@ -411,7 +415,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "settings_reset": "تنظیمات به حالت پیش‌فرض کارخانه بازگردانده و اعمال شد.",
 
         # System Tray Menu
-        "tray_title": "باینری‌رسپتور v3.4.0",
+        "tray_title": "باینری‌رسپتور v3.5.0",
         "tray_status_header": "وضعیت: {status}",
         "tray_start": "شروع به کار سرور",
         "tray_stop": "متوقف کردن سرور",
@@ -419,7 +423,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "tray_mode_both": "حالت: ترکیبی (همزمان)",
         "tray_mode_http": "حالت: فقط شبکه (HTTP)",
         "tray_mode_bt": "حالت: فقط بلوتوث",
-        "tray_show_qr": "نمایش کدهای QR و راهنمای اتصال...",
+        "tray_show_qr": "نمایش کدهای QR / راهنمای اتصال...",
         "tray_show_window": "نمایش پنجره باینری‌رسپتور",
         "tray_exit": "خروج کامل از برنامه",
         "toast_scan_title": "بارکد جدید دریافت شد ({source})",

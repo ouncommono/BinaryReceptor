@@ -1,4 +1,4 @@
-"""System Tray controller for BinaryReceptor v3.4.0 using native PySide6 QSystemTrayIcon."""
+"""System Tray controller for BinaryReceptor v3.5.0 using native PySide6 QSystemTrayIcon."""
 from __future__ import annotations
 
 import io
@@ -131,6 +131,17 @@ class SystemTrayController(QObject):
         # Exit Completely
         act_exit = self.menu.addAction(tr("tray_exit", self.lang))
         act_exit.triggered.connect(lambda: self.request_exit.emit())
+
+    def hide(self) -> None:
+        """Explicitly hide tray icon to prevent ghost taskbar icons upon exit (Mandate 9)."""
+        if hasattr(self, "tray") and self.tray:
+            self.tray.hide()
+
+    def cleanup(self) -> None:
+        """Cleanly tear down tray icon and context menu."""
+        if hasattr(self, "tray") and self.tray:
+            self.tray.hide()
+            self.tray.setParent(None)
 
     def show_notification(self, title: str, message: str, msec: int = 2500) -> None:
         """Show native Windows balloon / toast notification."""

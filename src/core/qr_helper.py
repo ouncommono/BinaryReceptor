@@ -139,10 +139,12 @@ def build_forwarding_url(ip: str, port: int, request_type: str = "post_json") ->
         return f"http://{clean_ip}:{port}/?content={{RESULT}}&format={{FORMAT}}&raw={{RESULT_BYTES}}"
     elif req_type in ("get_append", "get_add", "append", "prefix"):
         return f"http://{clean_ip}:{port}/?content="
+    elif req_type in ("get_result",):
+        return f"http://{clean_ip}:{port}/?result={{RESULT}}"
     elif req_type in ("scan", "post_scan"):
         return f"http://{clean_ip}:{port}/scan"
     else:
-        # Default for post_json, post_form, post, get_query, root:
+        # Default for post_json, post_form, post, get_query, get, root:
         return f"http://{clean_ip}:{port}/"
 
 
