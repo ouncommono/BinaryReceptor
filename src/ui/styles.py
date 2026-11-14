@@ -37,7 +37,7 @@ QWidget {{
     color: #94a3b8;
 }}
 
-/* Master Power Button */
+/* Master Power Button (Mandate 6: Explicit Dimensions) */
 QPushButton#MasterPowerBtnRunning {{
     background-color: #065f46;
     color: #ecfdf5;
@@ -46,6 +46,8 @@ QPushButton#MasterPowerBtnRunning {{
     font-size: 14px;
     font-weight: bold;
     padding: 8px 18px;
+    min-width: 140px;
+    min-height: 38px;
 }}
 QPushButton#MasterPowerBtnRunning:hover {{
     background-color: #047857;
@@ -59,6 +61,8 @@ QPushButton#MasterPowerBtnStopped {{
     font-size: 14px;
     font-weight: bold;
     padding: 8px 18px;
+    min-width: 140px;
+    min-height: 38px;
 }}
 QPushButton#MasterPowerBtnStopped:hover {{
     background-color: #991b1b;
@@ -327,6 +331,21 @@ QPushButton#ChipBtn:hover {{
     color: #ffffff;
 }}
 
+/* Quick Presets Buttons (Mandate 8: Ample padding and height preventing typography clipping) */
+QPushButton#PresetBtn {{
+    background-color: #334155;
+    color: #f8fafc;
+    border: 1px solid #475569;
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    min-height: 28px;
+}}
+QPushButton#PresetBtn:hover {{
+    background-color: #475569;
+}}
+
 /* Sticky Settings Footer */
 #StickyFooter {{
     background-color: #1e293b;
@@ -470,7 +489,7 @@ QWidget {{
     color: #64748b;
 }}
 
-/* Master Power Button */
+/* Master Power Button (Mandate 6: Explicit Dimensions) */
 QPushButton#MasterPowerBtnRunning {{
     background-color: #10b981;
     color: #ffffff;
@@ -479,6 +498,8 @@ QPushButton#MasterPowerBtnRunning {{
     font-size: 14px;
     font-weight: bold;
     padding: 8px 18px;
+    min-width: 140px;
+    min-height: 38px;
 }}
 QPushButton#MasterPowerBtnRunning:hover {{
     background-color: #059669;
@@ -492,6 +513,8 @@ QPushButton#MasterPowerBtnStopped {{
     font-size: 14px;
     font-weight: bold;
     padding: 8px 18px;
+    min-width: 140px;
+    min-height: 38px;
 }}
 QPushButton#MasterPowerBtnStopped:hover {{
     background-color: #dc2626;
@@ -754,6 +777,21 @@ QPushButton#ChipBtn {{
 QPushButton#ChipBtn:hover {{
     background-color: #0284c7;
     color: #ffffff;
+}}
+
+/* Quick Presets Buttons (Mandate 8: Ample padding and height preventing typography clipping) */
+QPushButton#PresetBtn {{
+    background-color: #e2e8f0;
+    color: #0f172a;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    min-height: 28px;
+}}
+QPushButton#PresetBtn:hover {{
+    background-color: #cbd5e1;
 }}
 
 /* Sticky Settings Footer */

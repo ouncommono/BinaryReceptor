@@ -1,10 +1,14 @@
-"""Automated build script for BinaryReceptor v3.3.0.
+"""Automated build script for BinaryReceptor v3.4.0.
 
-Compiles the application into a standalone Windows .exe using PyInstaller:
+Compiles the application into an aggressively optimized standalone Windows .exe using PyInstaller:
   - --noconsole (windowed GUI mode)
   - --onefile (single binary executable)
+  - --strip (strip debug symbols)
+  - --clean (clean cache before building)
+  - --optimize=2 (bytecode optimization -O2)
   - --noupx (UPX disabled to prevent qwindows.dll and C-extension corruption)
   - --name BinaryReceptor
+  - Aggressive exclusion of unused Qt modules (QtQml, QtQuick, QtPdf, QtSql, etc.)
   - --icon assets/icon.ico (multi-resolution 16-256px icon)
   - --version-file res/version.txt (Windows PE metadata)
   - Copies default settings.ini alongside BinaryReceptor.exe in dist/
@@ -47,7 +51,7 @@ def ensure_icon():
 
 
 def run_pyinstaller():
-    print("[3/5] Running PyInstaller build (stable packaging profile, UPX disabled)...")
+    print("[3/5] Running PyInstaller build (aggressive size optimization, UPX disabled)...")
     entry_point = ROOT_DIR / "src" / "main.py"
 
     cmd = [
@@ -56,6 +60,10 @@ def run_pyinstaller():
         "PyInstaller",
         "--noconsole",
         "--onefile",
+        # Do not use --strip on Windows; GNU strip on Windows PE binaries deadlocks or hangs
+        "--strip" if (sys.platform != "win32" and shutil.which("strip")) else "",
+        "--clean",
+        "--optimize=2",
         "--noupx",
         "--name=BinaryReceptor",
         f"--icon={ICON_PATH}",
@@ -68,6 +76,22 @@ def run_pyinstaller():
         "--hidden-import=PIL",
         "--hidden-import=psutil",
         "--hidden-import=pyperclip",
+        "--exclude-module=PySide6.QtQml",
+        "--exclude-module=PySide6.QtQuick",
+        "--exclude-module=PySide6.QtPdf",
+        "--exclude-module=PySide6.QtSvg",
+        "--exclude-module=PySide6.QtSql",
+        "--exclude-module=PySide6.QtTest",
+        "--exclude-module=PySide6.QtXml",
+        "--exclude-module=PySide6.QtMultimedia",
+        "--exclude-module=PySide6.QtBluetooth",
+        "--exclude-module=PySide6.QtPositioning",
+        "--exclude-module=PySide6.QtSensors",
+        "--exclude-module=PySide6.QtSerialPort",
+        "--exclude-module=tkinter",
+        "--exclude-module=matplotlib",
+        "--exclude-module=scipy",
+        "--exclude-module=numpy",
         str(entry_point),
     ]
     cmd = [arg for arg in cmd if arg]

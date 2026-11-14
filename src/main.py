@@ -51,7 +51,7 @@ class SingleInstanceMutex:
 
     ERROR_ALREADY_EXISTS = 183
 
-    def __init__(self, mutex_name: str = "Global\\BinaryReceptor_3_2_0_Mutex") -> None:
+    def __init__(self, mutex_name: str = "Global\\BinaryReceptor_3_4_0_Mutex") -> None:
         self.mutex_name = mutex_name
         self.handle = None
         self.already_running = False
@@ -76,6 +76,7 @@ def run_headless(config_mgr: ConfigManager, mode: str, port: int) -> None:
     """Run servers in non-GUI console daemon mode for server or automation deployments."""
     from src.core.bt_server import BluetoothServerController
     from src.core.deduplicator import DeduplicationEngine
+    from src.core.hid_interceptor import HIDInterventionEngine
     from src.core.http_server import HttpServerController
     from src.core.key_injector import KeyInjector
 
@@ -85,7 +86,21 @@ def run_headless(config_mgr: ConfigManager, mode: str, port: int) -> None:
     dedup = DeduplicationEngine(window_ms=config.deduplication_window_ms, enabled=config.deduplication_enabled)
     injector = KeyInjector()
 
+    hid_interceptor = HIDInterventionEngine(
+        mode_getter=lambda: mode,
+        output_mode_getter=lambda: config.output_mode,
+        on_hid_scan_intercepted=lambda text: print(f"[HID] Intercepted raw barcode: {text}"),
+        enabled=True,
+    )
+    hid_interceptor.start()
+
     def _on_scan(payload):
+        if payload.source == "HTTP":
+            hid_interceptor.register_http_scan(payload.content, payload.scan_id)
+            if hid_interceptor.should_suppress_http_injection(payload.content, payload.scan_id):
+                print(f"[HID-DEDUP] Suppressed redundant HTTP injection for {payload.content}")
+                return
+
         is_dup, msg = dedup.check_and_record(payload.content, source=payload.source, scan_id=payload.scan_id)
         if is_dup:
             print(f"[DEDUP] {msg}")
@@ -135,6 +150,7 @@ def run_headless(config_mgr: ConfigManager, mode: str, port: int) -> None:
         pass
     finally:
         print("[BinaryReceptor] Shutting down...")
+        hid_interceptor.stop()
         if http_srv:
             http_srv.stop()
         if bt_srv:
@@ -168,14 +184,18 @@ def run_self_test() -> int:
         from src.core.http_server import HttpServerController, parse_binaryeye_request
         from src.core.bt_server import BluetoothServerController
         from src.core.deduplicator import DeduplicationEngine
+        from src.core.hid_interceptor import HIDInterventionEngine
         from src.core.key_injector import KeyInjector
         from src.core.sound import generate_scanner_beep_wav
         from src.core.qr_helper import get_active_lan_ips, build_forwarding_url, generate_qr_png_bytes
 
+        hid_test = HIDInterventionEngine(enabled=False)
+        assert hid_test is not None
+
         # Verify WAV synthesis
         wav_data = generate_scanner_beep_wav(1800, 2400, 85)
         assert len(wav_data) > 100
-        print("  [OK] Core engines (HTTP, BT, Dedup, Injector, Sound, QR) verified")
+        print("  [OK] Core engines (HTTP, BT, Dedup, HID, Injector, Sound, QR) verified")
 
         # 4. GUI & MainWindow Bootstrap (Offscreen)
         from PySide6.QtWidgets import QApplication
@@ -187,8 +207,7 @@ def run_self_test() -> int:
 
         window = MainWindow(mgr)
         assert window is not None
-        window.close()
-        mgr.close()
+        window.exit_application()
         print("  [OK] PySide6 GUI and MainWindow initialized successfully")
 
         print(f"[SELF-TEST] BinaryReceptor v{__version__} self-test PASSED.")

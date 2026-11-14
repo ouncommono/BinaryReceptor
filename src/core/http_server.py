@@ -1,4 +1,4 @@
-"""Universal fault-tolerant HTTP companion server for BinaryEye in BinaryReceptor v3.3.0.
+"""Universal fault-tolerant HTTP companion server for BinaryEye in BinaryReceptor v3.4.0.
 
 Accepts requests on ANY path (/*) and ANY HTTP method (GET, POST, PUT, OPTIONS).
 Guarantees sub-millisecond HTTP 200 OK responses to respect BinaryEye's strict timeouts,
@@ -238,38 +238,24 @@ class BinaryReceptorHTTPHandler(BaseHTTPRequestHandler):
             client_ip=client_ip,
         )
 
-        # 4. Dispatch scan to worker queue without waiting for typing
-        if payload is not None:
-            self.server.dispatch_scan(payload)
+        # 4. Immediate sub-millisecond response to BinaryEye before keystroke processing (Mandate 5)
+        # Guarantees Content-Type: application/json; charset=utf-8 for all POST and GET requests.
+        status_data = {
+            "status": "ok",
+            "app": APP_NAME,
+            "version": __version__,
+            "mode": "ready",
+        }
+        if payload is not None and payload.scan_id:
+            status_data["scanId"] = payload.scan_id
 
-        # 5. Build clean, instant HTTP 200 OK response with exact Content-Length
-        is_json_req = (
-            is_health
-            or "application/json" in header_map.get("accept", "")
-            or "application/json" in header_map.get("content-type", "")
-            or (body_bytes and body_bytes.lstrip().startswith(b"{"))
-        )
-
-        if is_json_req:
-            status_data = {
-                "status": "ok",
-                "app": APP_NAME,
-                "version": __version__,
-                "mode": "ready",
-            }
-            if payload is not None and payload.scan_id:
-                status_data["scanId"] = payload.scan_id
-            response_bytes = (json.dumps(status_data) + "\n").encode("utf-8")
-            content_type = "application/json; charset=utf-8"
-        else:
-            response_bytes = b"OK"
-            content_type = "text/plain; charset=utf-8"
+        response_bytes = (json.dumps(status_data) + "\n").encode("utf-8")
 
         self.send_response(200)
         self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header("Access-Control-Allow-Methods", "GET, POST, PUT, OPTIONS, HEAD")
         self.send_header("Access-Control-Allow-Headers", "*")
-        self.send_header("Content-Type", content_type)
+        self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Content-Length", str(len(response_bytes)))
         self.send_header("Connection", "close")
         self.end_headers()
@@ -278,6 +264,10 @@ class BinaryReceptorHTTPHandler(BaseHTTPRequestHandler):
             self.wfile.flush()
         except (BrokenPipeError, ConnectionResetError):
             pass
+
+        # 5. Asynchronously dispatch scan to worker queue after 200 OK has already been transmitted
+        if payload is not None:
+            self.server.dispatch_scan(payload)
 
     def do_GET(self) -> None:
         self._handle_any_request()

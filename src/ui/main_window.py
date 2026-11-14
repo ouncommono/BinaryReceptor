@@ -1,4 +1,4 @@
-"""World-class bilingual (Persian RTL & English LTR) dashboard for BinaryReceptor v3.3.0."""
+"""World-class bilingual (Persian RTL & English LTR) dashboard for BinaryReceptor v3.4.0."""
 from __future__ import annotations
 
 import csv
@@ -51,6 +51,7 @@ from src.config import (
 )
 from src.core.bt_server import BluetoothServerController, get_local_bt_address
 from src.core.deduplicator import ScanDeduplicator
+from src.core.hid_interceptor import HIDInterventionEngine
 from src.core.http_server import HttpServerController, ScanPayload
 from src.core.key_injector import KeyInjector, win32_set_clipboard_text
 from src.core.qr_helper import (
@@ -130,6 +131,15 @@ class MainWindow(QMainWindow):
             enabled=self.config.deduplication_enabled,
         )
         self.injector = KeyInjector()
+
+        # Global Keyboard Hook & HID Intervention Engine (Mandates 1, 2, 3)
+        self.hid_interceptor = HIDInterventionEngine(
+            mode_getter=lambda: self.config.mode,
+            output_mode_getter=lambda: self.config.output_mode,
+            on_hid_scan_intercepted=self._on_hid_scan_intercepted,
+            enabled=True,
+        )
+        self.hid_interceptor.start()
 
         # Thread-safe Time-Interval Cooldown Gate (Specification 2)
         self._scan_lock = threading.Lock()
@@ -217,9 +227,10 @@ class MainWindow(QMainWindow):
 
         header_layout.addStretch()
 
-        # Master Power Button
-        self.btn_master_power = QPushButton()
+        # Master Power Button (Mandate 6: Explicit initial text and minimum dimensions)
+        self.btn_master_power = QPushButton(f"▶ {tr('btn_start', self.config.language)}")
         self.btn_master_power.setObjectName("MasterPowerBtnStopped")
+        self.btn_master_power.setMinimumSize(140, 38)
         self.btn_master_power.clicked.connect(self.toggle_server)
         header_layout.addWidget(self.btn_master_power)
 
@@ -863,7 +874,7 @@ class MainWindow(QMainWindow):
         row_interval.addWidget(self.spin_dedup_win)
         dl.addLayout(row_interval)
 
-        # Preset interval buttons
+        # Preset interval buttons (Mandate 8: Dedicated class and height styling preventing vertical clipping)
         preset_row = QHBoxLayout()
         preset_row.setSpacing(6)
         self.lbl_dedup_presets = QLabel(tr("lbl_dedup_presets", self.config.language))
@@ -871,8 +882,8 @@ class MainWindow(QMainWindow):
 
         for ms_val, label in [(500, "500ms"), (1000, "1s"), (1500, "1.5s"), (2000, "2s"), (3000, "3s")]:
             btn = QPushButton(label)
-            btn.setObjectName("SecondaryBtn")
-            btn.setFixedHeight(24)
+            btn.setObjectName("PresetBtn")
+            btn.setMinimumHeight(28)
             btn.clicked.connect(lambda checked=False, v=ms_val: self.spin_dedup_win.setValue(v))
             preset_row.addWidget(btn)
         preset_row.addStretch()
@@ -1349,6 +1360,11 @@ class MainWindow(QMainWindow):
             return
         if active_mode == "bluetooth" and src_l == "http":
             return
+
+        # Register HTTP scan with HID interceptor for cross-protocol deduplication (Mandate 2)
+        if hasattr(self, "hid_interceptor") and src_l == "http":
+            self.hid_interceptor.register_http_scan(payload.content, payload.scan_id)
+
         self.scan_queue.put(payload)
 
     def _dispatch_output(self, text: str, source: str) -> str:
@@ -1415,6 +1431,18 @@ class MainWindow(QMainWindow):
             return
 
         raw_content = payload.content or ""
+
+        # Mandates 1 & 2: Suppress redundant HTTP keystroke injection if HID input detected
+        if hasattr(self, "hid_interceptor") and src_l == "http":
+            if self.hid_interceptor.should_suppress_http_injection(raw_content, payload.scan_id):
+                self.cnt_dedup += 1
+                self.signals.stats_updated.emit()
+                self.signals.scan_received.emit(
+                    payload,
+                    tr("status_dedup", self.config.language),
+                    f"[HID Deduplication] Redundant HTTP processing discarded (HID input detected)",
+                )
+                return
 
         # ----------------------------------------------------------------------
         # 2. Canonical Normalization & Time-Interval Cooldown Gate (Specification 2)
@@ -1862,6 +1890,32 @@ class MainWindow(QMainWindow):
         self._update_status_card_styles()
         self.tray.update_state(self.is_server_active, self.config.mode, self.config.language)
 
+    def showEvent(self, event) -> None:
+        """Mandate 6: Ensure geometry is accurately updated immediately upon initial display."""
+        super().showEvent(event)
+        self.btn_master_power.updateGeometry()
+        if self.centralWidget() and self.centralWidget().layout():
+            self.centralWidget().layout().activate()
+        QApplication.processEvents()
+        QTimer.singleShot(0, self._ensure_initial_geometry)
+
+    def _ensure_initial_geometry(self) -> None:
+        """Explicit geometry recalculation callback after initial rendering frame."""
+        self.btn_master_power.updateGeometry()
+        if self.centralWidget() and self.centralWidget().layout():
+            self.centralWidget().layout().activate()
+
+    def _on_hid_scan_intercepted(self, text: str) -> None:
+        """Invoked when the low-level keyboard hook intercepts an HID barcode in copy-only mode (Mandate 3)."""
+        payload = ScanPayload(content=text, source="Bluetooth (HID)")
+        status_text = tr("status_copied", self.config.language)
+        self.cnt_total += 1
+        self.cnt_bt += 1
+        self.signals.stats_updated.emit()
+        self.signals.scan_received.emit(payload, status_text, "Intercepted raw HID barcode and routed to clipboard")
+        if self.config.audio_feedback:
+            play_scanner_beep()
+
     def closeEvent(self, event) -> None:
         if self.config.minimize_to_tray:
             event.ignore()
@@ -1876,6 +1930,8 @@ class MainWindow(QMainWindow):
             self.exit_application()
 
     def exit_application(self) -> None:
+        if hasattr(self, "hid_interceptor"):
+            self.hid_interceptor.stop()
         self.stop_server()
         self._worker_stop.set()
         self.config_manager.close()

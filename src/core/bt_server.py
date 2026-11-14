@@ -1,4 +1,4 @@
-"""Native Windows Bluetooth RFCOMM Server and SDP Advertiser for BinaryReceptor v3.3.0.
+"""Native Windows Bluetooth RFCOMM Server and SDP Advertiser for BinaryReceptor v3.4.0.
 
 Completely replaces the legacy hxBluetooth C#/Haxe build chain with native Win32 Winsock
 bindings (AF_BTH, SOCK_STREAM, BTPROTO_RFCOMM) and ws2_32.WSASetServiceW SDP registration.

@@ -1,4 +1,4 @@
-"""Comprehensive bilingual localization dictionaries (English & Persian / فارسی) for BinaryReceptor v3.3.0.
+"""Comprehensive bilingual localization dictionaries (English & Persian / فارسی) for BinaryReceptor v3.4.0.
 
 Engineered with 100% key parity between 'en' and 'fa', natural professional phrasing,
 and complete isolation so English is 100% LTR and Persian is 100% RTL with zero mixed text.
@@ -10,7 +10,7 @@ from typing import Any
 TRANSLATIONS: dict[str, dict[str, str]] = {
     "en": {
         # App & Header
-        "app_title": "BinaryReceptor v3.3.0",
+        "app_title": "BinaryReceptor v3.4.0",
         "app_subtitle": "Desktop Companion Server for BinaryEye Android Barcode Scanner",
         "status_running": "SERVER ACTIVE",
         "status_stopped": "SERVER STOPPED",
@@ -131,6 +131,16 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "grp_feedback": "Audio & UI Feedback",
         "grp_system": "System & Windows Integration",
 
+        # Settings Group Section Headers (Mandate 7)
+        "sec_general": "General & Operation Mode",
+        "sec_network": "Network & HTTP Server",
+        "sec_dedup": "Smart Deduplication & Cooldown Gate",
+        "sec_wedge": "Keystroke Output & Wedging",
+        "sec_filters": "Filters & Data Transformations",
+        "lbl_mode": "Active Operation Mode:",
+        "url_copied": "Forwarding URL successfully copied to clipboard!",
+        "desc_qr_encode": "Encode any raw text into a standard barcode for phone camera scanning.",
+
         "lbl_op_mode": "Active Operation Mode:",
         "opt_mode_both": "Hybrid Simultaneous (Bluetooth + HTTP)",
         "opt_mode_http": "HTTP Server Only (Wi-Fi / LAN)",
@@ -193,7 +203,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "settings_reset": "Settings have been reset to factory defaults and applied.",
 
         # System Tray Menu
-        "tray_title": "BinaryReceptor v3.2.0",
+        "tray_title": "BinaryReceptor v3.4.0",
         "tray_status_header": "Status: {status}",
         "tray_start": "Start Server",
         "tray_stop": "Stop Server",
@@ -208,7 +218,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     },
     "fa": {
         # App & Header
-        "app_title": "باینری‌رسپتور v3.2.0 (BinaryReceptor)",
+        "app_title": "باینری‌رسپتور v3.4.0 (BinaryReceptor)",
         "app_subtitle": "سرور همراه ویندوز برای اسکنر بارکد گوشی اندروید BinaryEye",
         "status_running": "سرور فعال است",
         "status_stopped": "سرور متوقف شد",
@@ -329,6 +339,16 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "grp_feedback": "صدا و اعلانات",
         "grp_system": "همگام‌سازی با ویندوز",
 
+        # Settings Group Section Headers (Mandate 7)
+        "sec_general": "تنظیمات عمومی و حالت کاری",
+        "sec_network": "تنظیمات شبکه و سرور HTTP",
+        "sec_dedup": "فیلتر هوشمند ضدتکرار و بازه زمانی",
+        "sec_wedge": "شبیه‌سازی صفحه‌کلید و خروجی",
+        "sec_filters": "فیلترها و قوانین تبدیل داده",
+        "lbl_mode": "حالت دریافت بارکد:",
+        "url_copied": "نشانی کامل سرور با موفقیت در کلیپ‌بورد کپی شد!",
+        "desc_qr_encode": "تبدیل هرگونه متن دلخواه به بارکد استاندارد جهت اسکن آزمایشی توسط دوربین گوشی.",
+
         "lbl_op_mode": "حالت دریافت بارکد:",
         "opt_mode_both": "ترکیبی همزمان (بلوتوث + HTTP)",
         "opt_mode_http": "فقط سرور تحت شبکه (HTTP / Wi-Fi)",
@@ -391,7 +411,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "settings_reset": "تنظیمات به حالت پیش‌فرض کارخانه بازگردانده و اعمال شد.",
 
         # System Tray Menu
-        "tray_title": "باینری‌رسپتور v3.2.0",
+        "tray_title": "باینری‌رسپتور v3.4.0",
         "tray_status_header": "وضعیت: {status}",
         "tray_start": "شروع به کار سرور",
         "tray_stop": "متوقف کردن سرور",
