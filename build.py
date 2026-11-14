@@ -1,4 +1,4 @@
-"""Automated build script for BinaryReceptor v3.4.0.
+"""Automated build script for BinaryReceptor v3.5.0.
 
 Compiles the application into an aggressively optimized standalone Windows .exe using PyInstaller:
   - --noconsole (windowed GUI mode)

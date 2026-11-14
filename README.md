@@ -1,11 +1,11 @@
-# BinaryReceptor v3.4.0
+# BinaryReceptor v3.5.0
 
 > **The ultra-lightweight, zero-bug, high-performance desktop companion server for [BinaryEye](https://github.com/markusfisch/BinaryEye) on Android.**  
 > Native Windows architecture with Bluetooth RFCOMM, HTTP webhook listener, low-level Win32 `SendInput` Unicode keyboard wedge, global HID deduplication hook, and visual token builder.
 
 [![Python](https://img.shields.io/badge/Python-3.11%20%7C%203.12%20%7C%203.14-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%2F%2011-0078D6?logo=windows&logoColor=white)](https://microsoft.com/windows)
-[![Release](https://img.shields.io/badge/Release-v3.4.0-10B981)](https://github.com/ouncommono/BinaryReceptor/releases)
+[![Release](https://img.shields.io/badge/Release-v3.5.0-10B981)](https://github.com/ouncommono/BinaryReceptor/releases)
 [![Build Status](https://github.com/ouncommono/BinaryReceptor/actions/workflows/build_release.yml/badge.svg)](https://github.com/ouncommono/BinaryReceptor/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
@@ -20,7 +20,7 @@
 # 🇬🇧 English Documentation
 
 ## Executive Overview & Architecture
-**BinaryReceptor v3.4.0** is the production-grade desktop companion server for the open-source Android barcode scanner [BinaryEye](https://github.com/markusfisch/BinaryEye). It transforms any Android smartphone running BinaryEye into an industrial-grade, zero-latency wireless barcode scanner for Windows workstations.
+**BinaryReceptor v3.5.0** is the official production-grade desktop companion server for the open-source Android barcode scanner [BinaryEye](https://github.com/markusfisch/BinaryEye). It transforms any Android smartphone running BinaryEye into an industrial-grade, zero-latency wireless barcode scanner for Windows workstations.
 
 Whenever a 1D linear barcode (EAN-13, Code 128, UPC-A, Code 39) or 2D matrix code (QR Code, DataMatrix, Aztec, PDF417) is scanned on mobile, BinaryReceptor captures the payload instantaneously over **Bluetooth RFCOMM**, **Wi-Fi / LAN HTTP**, or **both simultaneously in Hybrid mode**. The scanned data is wedged directly into the active Windows application (Excel, ERP systems, accounting software, Point of Sale, web browsers, Notepad) using low-level Win32 `SendInput` Unicode code points (bypassing the host keyboard layout) or instant clipboard paste (`Ctrl+V`).
 
@@ -55,21 +55,21 @@ Whenever a 1D linear barcode (EAN-13, Code 128, UPC-A, Code 39) or 2D matrix cod
 
 ---
 
-## ⚡ Key Architectural Features
+## ⚡ Key Architectural Features in v3.5.0
 
 | Capability | Description |
 | :--- | :--- |
+| **Re-Architected Bluetooth HID Intervention** | Non-destructive low-level `WH_KEYBOARD_LL` hook intercepts rapid physical/Bluetooth HID scanner bursts (< 45ms). Intercepts and suppresses raw OS-level keystrokes from reaching the active window, eliminating double-typing in Hybrid mode and strictly suppressing Bluetooth HID input when in HTTP Server Only mode. |
+| **Typing Modes under Bluetooth** | When `Copy to clipboard only` is active, native Bluetooth HID keystrokes are intercepted, completely suppressed from typing into the focused window, and routed directly to the Windows Clipboard (`win32_set_clipboard_text`). |
+| **OS Keyboard Layout Independence** | By intercepting and suppressing raw Bluetooth HID keystrokes, OS keyboard layout translation is bypassed. Intercepted barcodes (and HTTP payloads) are injected exclusively using `ctypes.windll.user32.SendInput` with `KEYEVENTF_UNICODE` (`wVk=0`, `wScan=UTF-16 code point`), completely eliminating garbled text under Persian (Farsi) or non-English Windows layouts. |
+| **BinaryEye Protocol Parity & Zero Beep Latency** | Full protocol parity handling GET (`?result={RESULT}`, `?content=`) and POST (JSON with `content`, `raw`, `format`, `scanId`). Sub-millisecond immediate asynchronous 200 OK responses (`Content-Type: application/json; charset=utf-8`) prevent client error beeps. The standard forwarding URL is manually editable in the UI with dynamic live QR code synchronization. |
+| **Strict Static GUI Geometry** | Start Server button (`btn_master_power`) enforces strict static dimensions (fixed `140px x 38px`, `QSizePolicy.Fixed`, and stylesheet constraints) with zero dynamic inflation on startup or interaction. |
+| **Typographical & i18n Excellence** | Fixed tab headers (`Connection / QR Code` and `Settings / Hardware`), 100% complete Persian translations for Suffix token presets (`پسوندها`), and localized theme button switching (`🌙 پوسته تیره` / `☀️ پوسته روشن`). |
+| **Holistic Color Palette Overhaul** | High-contrast Live Preview box styling (`#LivePreviewBox`) in Light Theme (`#f0f9ff` background, `#0284c7` text, `#bae6fd` border) and Dark Theme (`#0b1120` background, `#38bdf8` text, `#1e293b` border). |
+| **Start Minimized on Launch** | New checkbox setting: `Start minimized on launch` (default: disabled) located alongside `Start server automatically`. When enabled, the application bypasses the main window and starts directly in the Windows System Tray. |
+| **Ghost System Tray Icon Elimination** | Graceful application shutdown with explicit `SystemTrayController.hide()` and `cleanup()` calls, preventing orphaned notification area icons upon exit. |
 | **Bluetooth RFCOMM Server** | Native Windows `AF_BTH` Winsock RFCOMM listener with Win32 SDP service UUID advertisement (`8a8478c9-2ca8-404b-a0de-101f34ab71ae`). Zero external drivers or virtual COM ports required. |
-| **Universal Sub-ms HTTP Server** | Multi-threaded HTTP listener supporting all BinaryEye forwarding formats (POST JSON, POST Form, GET Query, GET Append, GET Custom Template) with sub-millisecond immediate 200 OK JSON responses. |
-| **Strict Operation Mode Isolation** | When HTTP Server Only is configured, Bluetooth listeners are cleanly stopped and redundant HTTP injection pathways are actively discarded if incoming HID input is detected. |
-| **Global Low-Level Keyboard Hook** | Native Win32 `WH_KEYBOARD_LL` hook detecting high-speed physical/HID barcode scanner bursts (< 50ms), preventing double-typing across simultaneous protocols. |
-| **Hardware Copy-to-Clipboard Routing** | In `Copy to clipboard only` mode, raw HID keystrokes are intercepted, blocked from typing into the focused window, and routed directly to the Windows clipboard. |
-| **Keyboard Layout Independence** | Keystroke injection exclusively invokes Win32 `SendInput` with `KEYEVENTF_UNICODE` (`wVk=0`, `wScan=UTF-16 code point`), completely eliminating garbled characters under Persian (Farsi) or non-English Windows layouts. |
-| **Visual Prefix / Suffix Builder** | Scrollable, responsive keystroke wedge editor with interactive chip buttons (`{ENTER}`, `{TAB}`, `{SPACE}`, `{DATE}`, `{TIME}`, `{BACKSPACE}`, `{ESC}`, `{DOWN}`). |
-| **Audio Scanner Chime** | In-memory 16-bit PCM WAV synthesized dual-tone chime (1800Hz → 2400Hz) with zero external audio assets or DLL dependencies. |
-| **QR Connection Assistant** | Dynamic QR code generator displaying active network interface IPs, request mode selector, and 1-click URL copying. |
-| **Standalone Barcode Generator** | Encode arbitrary text into 11 barcode symbologies (QR Code, Code 128, DataMatrix, EAN-13, Aztec, PDF417) containing raw text verbatim. |
-| **Dedicated Scans Statistics Header**| Live KPI metrics (Total Scans, Bluetooth Scans, HTTP Scans, Duplicates Blocked) integrated cleanly into the top header of the Live Scan Activity page. |
+| **Dedicated Scans Statistics Header** | Live KPI metrics (Total Scans, Bluetooth Scans, HTTP Scans, Duplicates Blocked) integrated cleanly into the top header of the Live Scan Activity page. |
 | **100% Bilingual RTL / LTR UI** | Complete Persian (فارسی - RTL) and English (LTR) localization with exact dictionary parity across all dropdowns, chips, section headers, and dialogs. |
 | **Live Hot-Reloading `settings.ini`** | INI file located deterministically alongside `BinaryReceptor.exe` that reloads configuration changes automatically within 1 second. |
 
@@ -78,7 +78,7 @@ Whenever a 1D linear barcode (EAN-13, Code 128, UPC-A, Code 39) or 2D matrix cod
 ## 🚀 Quick Start Guide
 
 ### Option 1: Standalone Executable (Recommended)
-1. Download `BinaryReceptor-v3.4.0-win64.zip` from [GitHub Releases](https://github.com/ouncommono/BinaryReceptor/releases/latest).
+1. Download `BinaryReceptor-v3.5.0-win64.zip` from [GitHub Releases](https://github.com/ouncommono/BinaryReceptor/releases/latest).
 2. Extract the archive to any folder on your Windows workstation.
 3. Launch `BinaryReceptor.exe`.
 4. Click **Start Server** (or enable auto-start in Settings).
@@ -133,7 +133,7 @@ In BinaryEye, navigate to **Settings → Forwarding** and enable **Forward scans
 - **BinaryEye Request Type**: `GET and simply add content`
 - **Configured URL in Phone**: `http://<YOUR_PC_IP>:24234/?content=` (or `http://<YOUR_PC_IP>:24234/`)
 - BinaryEye appends the scanned content directly to the end of the URL.
-- Optional Template: `http://<YOUR_PC_IP>:24234/?content={RESULT}&format={FORMAT}&raw={RESULT_BYTES}`
+- Optional Template: `http://<YOUR_PC_IP>:24234/?result={RESULT}` or `http://<YOUR_PC_IP>:24234/?content={RESULT}&format={FORMAT}&raw={RESULT_BYTES}`
 
 ---
 
@@ -163,7 +163,7 @@ The `settings.ini` configuration file resides alongside `BinaryReceptor.exe` and
 | `[general]` | `language` | `en` | UI language: `en` (English - LTR) or `fa` (Persian - RTL). |
 | `[general]` | `theme` | `dark` | UI theme: `dark`, `light`, or `system`. |
 | `[general]` | `auto_start` | `false` | Automatically start listeners upon launch (Disabled by default). |
-| `[general]` | `start_minimized` | `false` | Start minimized to system tray. |
+| `[general]` | `start_minimized` | `false` | Start application minimized directly to system tray. |
 | `[general]` | `minimize_to_tray` | `true` | Minimize window to tray when closing (X). |
 | `[general]` | `audio_feedback` | `true` | Synthesize scanner audio chime on successful scan. |
 | `[general]` | `tray_notifications` | `true` | Show Windows tray notification on scan. |
@@ -207,7 +207,7 @@ The build script compiles an optimized single-file executable `dist/BinaryRecept
 
 ## 🧪 Testing
 
-Run the comprehensive test suite verifying all architectural specifications:
+Run the comprehensive test suite verifying all 11 architectural mandates:
 
 ```powershell
 pytest -v tests/
@@ -218,7 +218,7 @@ pytest -v tests/
 ## 📜 License & Credits
 
 This project is licensed under the [MIT License](LICENSE).  
-Architecture, modernization, and version 3.4.0 engineering by **ouncommono**.  
+Architecture, modernization, and version 3.5.0 engineering by **ouncommono**.  
 Original upstream repository: [KamaleiZestri/BinaryReceptor](https://github.com/KamaleiZestri/BinaryReceptor).  
 Android Scanner Client: [BinaryEye](https://github.com/markusfisch/BinaryEye) by Markus Fisch.
 
@@ -227,7 +227,7 @@ Android Scanner Client: [BinaryEye](https://github.com/markusfisch/BinaryEye) by
 # 🇮🇷 راهنمای جامع فارسی (Persian Documentation)
 
 ## معرفی و معماری نرم‌افزار
-**باینری‌رسپتور نسخه ۳.۴.۰ (BinaryReceptor v3.4.0)** نرم‌افزار حرفه‌ای سرور همراه و واسط شبیه‌ساز صفحه‌کلید (Keyboard Wedge) برای اپلیکیشن متن‌باز [BinaryEye](https://github.com/markusfisch/BinaryEye) در سیستم‌عامل اندروید است. این برنامه گوشی هوشمند شما را به یک بارکدخوان بی‌سیم صنعتی، فوق‌سریع و بدون خطای تایپ برای کامپیوترهای ویندوز تبدیل می‌کند.
+**باینری‌رسپتور نسخه ۳.۵.۰ (BinaryReceptor v3.5.0)** نرم‌افزار حرفه‌ای سرور همراه و واسط شبیه‌ساز صفحه‌کلید (Keyboard Wedge) برای اپلیکیشن متن‌باز [BinaryEye](https://github.com/markusfisch/BinaryEye) در سیستم‌عامل اندروید است. این برنامه گوشی هوشمند شما را به یک بارکدخوان بی‌سیم صنعتی، فوق‌سریع و بدون خطای تایپ برای کامپیوترهای ویندوز تبدیل می‌کند.
 
 با اسکن هرگونه بارکد میله‌ای (EAN-13، Code 128، UPC-A، Code 39) یا کدهای دوبعدی (QR Code، DataMatrix، Aztec، PDF417) توسط دوربین گوشی، داده‌های اسکن‌شده به صورت آنی از طریق **بلوتوث (RFCOMM)**، **شبکه محلی (HTTP)** و یا **حالت ترکیبی همزمان (Hybrid)** به کامپیوتر منتقل شده و مستقیماً در نرم‌افزار فعال ویندوز (اکسل، نرم‌افزارهای مالی و حسابداری، انبارداری، مرورگر، نوت‌پد) با کدهای استاندارد یونیکد Win32 `SendInput` (بدون تأثیرپذیری از کیبورد فارسی یا انگلیسی ویندوز) تایپ یا پیست (`Ctrl+V`) می‌شود.
 
@@ -262,20 +262,20 @@ Android Scanner Client: [BinaryEye](https://github.com/markusfisch/BinaryEye) by
 
 ---
 
-## ⚡ جدول جامع قابلیت‌ها و ویژگی‌های کلیدی
+## ⚡ جدول جامع قابلیت‌ها و ویژگی‌های کلیدی نسخه ۳.۵.۰
 
 | قابلیت | شرح فنی و عملکردی |
 | :--- | :--- |
+| **مهندسی مجدد رهگیری بلوتوث HID** | هوک سطح پایین و ایمن `WH_KEYBOARD_LL` ویندوز جهت شناسایی شلیک‌های پرسرعت بارکدخوان فیزیکی یا بلوتوث (< ۴۵ میلی‌ثانیه). رهگیری و جلوگیری از ارسال کلیدهای خام سیستم‌عامل به پنجره فعال، رفع قطعی باگ تایپ دوگانه در حالت ترکیبی و مهار مطلق ورودی بلوتوث در حالت «فقط سرور تحت شبکه». |
+| **پشتیبانی کامل از حالت کلیپ‌بورد در بلوتوث** | در حالت «فقط کپی در کلیپ‌بورد»، ورودی خام ارسالی از بلوتوث HID رهگیری شده، از تایپ آن در پنجره فعال جلوگیری می‌شود و متن مستقیماً در حافظه کلیپ‌بورد ویندوز ذخیره می‌گردد. |
+| **استقلال کامل از زبان کیبورد ویندوز** | با رهگیری و مسدودسازی ورودی خام بلوتوث HID، نگاشت کیبورد سیستم‌عامل دور زده می‌شود. متن‌های اسکن‌شده منحصراً با `SendInput` یونیکد (`KEYEVENTF_UNICODE` با `wVk=0` و کد پوینت UTF-16 در `wScan`) تزریق می‌شوند؛ تضمین ۱۰۰٪ عدم به‌هم‌ریختگی حروف انگلیسی حتی در صورت فعال بودن کیبورد فارسی ویندوز. |
+| **تطابق کامل با پروتکل BinaryEye و رفع بوق خطا** | پشتیبانی از انواع متدهای GET (`?result={RESULT}`) و POST با بدنه JSON. ارسال پاسخ آنی 200 OK با هدر `application/json; charset=utf-8` در کسری از میلی‌ثانیه که مانع پخش صدای بوق خطای گوشی در حالت ارسال همزمان می‌شود. امکان ویرایش دستی نشانی فورواردینگ در برنامه با تولید بلادرنگ کد QR. |
+| **ابعاد هندسی دقیق و ثابت دکمه استارت** | دکمه کنترل سرور (`btn_master_power`) دارای ابعاد ثابت و قفل‌شده ۱۴۰ در ۳۸ پیکسل با سیاست اندازه Fixed و بدون هرگونه تغییر اندازه یا تورم دینامیک در فریم اول یا پس از کلیک. |
+| **اصلاح کامل نگارش و زبان فارسی** | رفع آندرلاین در عناوین تب‌ها (`اتصال / کد QR` و `تنظیمات / سخت‌افزار`)، ترجمه ۱۰۰٪ کامل توکن‌های پسوند (`پسوندها`) در واژه‌نامه فارسی و ترجمه صحیح دکمه تغییر پوسته (`🌙 پوسته تیره` / `☀️ پوسته روشن`). |
+| **بازطراحی پالت رنگ و تم روشن** | اصلاح کادر پیش‌نمایش زنده خروجی (`#LivePreviewBox`) با پس‌زمینه روشن، خوانا و باکنتراست بالا در پوسته روشن (`#f0f9ff` با متن `#0284c7` و کادر `#bae6fd`). |
+| **اجرای مستقیم در حالت کمینه (Start Minimized)** | اضافه شدن گزینه «شروع برنامه به صورت کوچک‌شده در کنار ساعت (Tray)» در تنظیمات عمومی برنامه با ذخیره خودکار در فایل `settings.ini`. |
+| **حذف آیکون محو شونده (Ghost Tray Icon)** | بستن استاندارد برنامه با متد اختصاصی `tray.hide()` و `cleanup()` پیش از خروج نهایی، بدون باقی ماندن آیکون‌های بدون پاسخ در کنار ساعت ویندوز. |
 | **سرور بلوتوث RFCOMM** | شنود مستقیم سوکت‌های RFCOMM ویندوز (`AF_BTH`) با ثبت شناسه سرویس SDP اختصاصی BinaryEye (`8a8478c9-2ca8-404b-a0de-101f34ab71ae`) بدون نیاز به درایور پورت سریال مجازی. |
-| **سرور فوق‌سریع HTTP** | سرور چندنخی سریع با پشتیبانی کامل از هر ۴ حالت ارسال BinaryEye (ارسال JSON، ارسال فرم، متد GET با پرسمان، و افزودن مستقیم مقدار) با پاسخگویی آنی زیر میلی‌ثانیه با هدر استاندارد `application/json; charset=utf-8`. |
-| **جداسازی کامل حالت‌های کاری** | در حالت فقط شبکه، پورت بلوتوث بسته شده و در صورت تشخیص ورودی همزمان HID، مسیرهای تکراری به صورت خودکار نادیده گرفته می‌شوند تا از رفتار ناخواسته ترکیبی جلوگیری شود. |
-| **هوک سراسری سطح پایین کیبورد** | هوک سیستمی `WH_KEYBOARD_LL` ویندوز جهت شناسایی شلیک‌های پرسرعت بارکدخوان فیزیکی یا بلوتوث (< ۵۰ میلی‌ثانیه) و جلوگیری کامل از تایپ دوگانه (The Double-Typing Bug). |
-| **هدایت مستقیم به کلیپ‌بورد در حالت HID** | در حالت «فقط کپی در کلیپ‌بورد»، ورودی خام ارسالی از بلوتوث HID رهگیری شده، از تایپ آن در پنجره فعال جلوگیری می‌شود و متن مستقیماً در حافظه کلیپ‌بورد کپی می‌گردد. |
-| **استقلال کامل از زبان کیبورد ویندوز** | بازنویسی کامل موتور تزریق کلیدها با استفاده انحصاری از `KEYEVENTF_UNICODE` با `wVk=0` و کد پوینت UTF-16 در `wScan`؛ تضمین عدم به‌هم‌ریختگی حروف انگلیسی هنگام فعال بودن کیبورد فارسی ویندوز. |
-| **سازنده بصری پیشوند و پسوند** | رابط کاربری اسکرول‌پذیر و واکنش‌گرا با دکمه‌های چیپ تعاملی برای درج کلیدهای اینتر (`{ENTER}`)، تب (`{TAB}`)، فاصله (`{SPACE}`)، بک‌اسپیس، خروج، تاریخ و ساعت جاری. |
-| **صدای زنگ اسکنر (Audio Chime)** | تولید درون‌برنامه‌ای صدای دوگانه استاندارد اسکنر صنعتی (۱۸۰۰ تا ۲۴۰۰ هرتز) در حافظه رم با فرمت ۱۶ بیتی PCM WAV بدون نیاز به فایل صوتی خارجی. |
-| **دستیار هوشمند اتصال و QR Code** | تولید کد QR پویا با قابلیت انتخاب کارت شبکه، انتخاب نوع درخواست BinaryEye و دکمه کپی فوری نشانی در کلیپ‌بورد. |
-| **تولیدکننده بارکد استاندارد** | تبدیل هرگونه متن دلخواه به ۱۱ فرمت بارکد استاندارد (کد QR، Code 128، DataMatrix، EAN-13، Aztec، PDF417) به صورت متن خام جهت اسکن آزمایشی. |
 | **کارت‌های اختصاصی آمار اسکن** | نمایش زنده تعداد کل اسکن‌ها، اسکن‌های بلوتوث، اسکن‌های شبکه و تکراری‌های مسدودشده در بالای صفحه گزارش زنده اسکن‌ها. |
 | **رابط کاربری دوزبانه استاندارد** | پشتیبانی ۱۰۰٪ کامل از زبان فارسی (RTL راست‌به‌چپ) و انگلیسی (LTR چپ‌به‌راست) با همترازی دقیق واژگان، سربرگ‌ها و منوها بدون تداخل چیدمان. |
 | **بارگذاری زنده `settings.ini`** | فایل تنظیمات استاندارد در کنار فایل اجرایی با قابلیت خواندن و اعمال خودکار تغییرات ظرف کمتر از ۱ ثانیه پس از ویرایش دستی. |
@@ -285,7 +285,7 @@ Android Scanner Client: [BinaryEye](https://github.com/markusfisch/BinaryEye) by
 ## 🚀 راهنمای شروع سریع
 
 ### روش ۱: فایل اجرایی پرتابل بدون نیاز به نصب (پیشنهادی)
-۱. بسته فشرده `BinaryReceptor-v3.4.0-win64.zip` را از بخش [انتشارهای گیت‌هاب (Releases)](https://github.com/ouncommono/BinaryReceptor/releases/latest) دانلود کنید.  
+۱. بسته فشرده `BinaryReceptor-v3.5.0-win64.zip` را از بخش [انتشارهای گیت‌هاب (Releases)](https://github.com/ouncommono/BinaryReceptor/releases/latest) دانلود کنید.  
 ۲. محتویات فایل زیپ را در یک پوشه دلخواه استخراج کنید.  
 ۳. فایل `BinaryReceptor.exe` را اجرا کنید.  
 ۴. روی دکمه **شروع به کار سرور** کلیک نمایید.
@@ -338,7 +338,7 @@ python run.py
 - **نوع درخواست در گوشی**: `GET and simply add content`
 - **نشانی سرور در گوشی**: `http://<IP_کامپیوتر>:24234/?content=` (یا `http://<IP_کامپیوتر>:24234/`)
 - بارکد اسکن‌شده مستقیماً به انتهای آدرس اضافه می‌شود.
-- الگوی سفارشی اختیاری: `http://<IP_کامپیوتر>:24234/?content={RESULT}&format={FORMAT}&raw={RESULT_BYTES}`
+- الگوی سفارشی اختیاری: `http://<IP_کامپیوتر>:24234/?result={RESULT}` یا `http://<IP_کامپیوتر>:24234/?content={RESULT}&format={FORMAT}&raw={RESULT_BYTES}`
 
 ---
 
@@ -423,6 +423,6 @@ pytest -v tests/
 ## 📜 پروانه نرم‌افزار و حقوق نشر (License & Credits)
 
 این پروژه تحت مجوز آزاد بین‌المللی [MIT License](LICENSE) منتشر شده است.  
-طراحی معماری، بازنویسی مدرن و توسعه نسخه ۳.۴.۰ توسط **ouncommono**.  
+طراحی معماری، بازنویسی مدرن و توسعه نسخه ۳.۵.۰ توسط **ouncommono**.  
 پروژه پایه و مخزن اصلی: [KamaleiZestri/BinaryReceptor](https://github.com/KamaleiZestri/BinaryReceptor).  
 اپلیکیشن کلاینت اندروید: [BinaryEye](https://github.com/markusfisch/BinaryEye) اثر Markus Fisch.

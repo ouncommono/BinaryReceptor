@@ -22,18 +22,18 @@ from src.ui.i18n import TRANSLATIONS, tr
 
 
 def test_mandate_10_version_and_metadata_v340():
-    """Mandate 10: Verify version is 3.4.0 across all constants and PE version file."""
-    assert __version__ == "3.4.0"
-    assert APP_ID == "BinaryReceptor.3.4.0"
-    assert "v3.4.0" in APP_DISPLAY_NAME
+    """Mandate 10: Verify version is 3.5.0 across all constants and PE version file."""
+    assert __version__ == "3.5.0"
+    assert APP_ID == "BinaryReceptor.3.5.0"
+    assert "v3.5.0" in APP_DISPLAY_NAME
 
     from pathlib import Path
     ver_txt = Path(__file__).resolve().parent.parent / "res" / "version.txt"
     if ver_txt.exists():
         content = ver_txt.read_text(encoding="utf-8")
-        assert "(3, 4, 0, 0)" in content
-        assert "'FileVersion', '3.4.0'" in content
-        assert "'ProductVersion', '3.4.0'" in content
+        assert "(3, 5, 0, 0)" in content
+        assert "'FileVersion', '3.5.0'" in content
+        assert "'ProductVersion', '3.5.0'" in content
 
 
 def test_mandate_1_strict_http_only_mode_discards_redundant_http_when_hid_detected():
@@ -186,7 +186,7 @@ def test_mandate_7_localization_parity_and_no_missing_keys():
     # 3. Check for rogue underscores like "Connection _QR Code"
     assert " _QR" not in en["tab_connection"]
     assert "_QR" not in en["tab_connection"]
-    assert en["tab_connection"] == "Connection & QR Code"
+    assert en["tab_connection"] == "Connection / QR Code"
 
 
 def test_mandate_8_quick_presets_dimensions_and_styling():

@@ -37,7 +37,7 @@ QWidget {{
     color: #94a3b8;
 }}
 
-/* Master Power Button (Mandate 6: Explicit Dimensions) */
+/* Master Power Button (Mandate 5: Strict Static Dimensions, No Inflation) */
 QPushButton#MasterPowerBtnRunning {{
     background-color: #065f46;
     color: #ecfdf5;
@@ -45,9 +45,13 @@ QPushButton#MasterPowerBtnRunning {{
     border-radius: 8px;
     font-size: 14px;
     font-weight: bold;
-    padding: 8px 18px;
-    min-width: 140px;
-    min-height: 38px;
+    padding: 0px;
+    width: 138px;
+    min-width: 138px;
+    max-width: 138px;
+    height: 36px;
+    min-height: 36px;
+    max-height: 36px;
 }}
 QPushButton#MasterPowerBtnRunning:hover {{
     background-color: #047857;
@@ -60,9 +64,13 @@ QPushButton#MasterPowerBtnStopped {{
     border-radius: 8px;
     font-size: 14px;
     font-weight: bold;
-    padding: 8px 18px;
-    min-width: 140px;
-    min-height: 38px;
+    padding: 0px;
+    width: 138px;
+    min-width: 138px;
+    max-width: 138px;
+    height: 36px;
+    min-height: 36px;
+    max-height: 36px;
 }}
 QPushButton#MasterPowerBtnStopped:hover {{
     background-color: #991b1b;
@@ -441,6 +449,19 @@ QGroupBox::title {{
     padding: 0 8px;
 }}
 
+/* Live Preview Output Box (Mandate 7: Dark Theme) */
+QLabel#LivePreviewBox {{
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 14px;
+    font-weight: 600;
+    color: #38bdf8;
+    background-color: #0b1120;
+    border: 1px solid #1e293b;
+    border-radius: 8px;
+    padding: 12px;
+    min-height: 48px;
+}}
+
 /* Checkboxes */
 QCheckBox {{
     spacing: 8px;
@@ -489,7 +510,7 @@ QWidget {{
     color: #64748b;
 }}
 
-/* Master Power Button (Mandate 6: Explicit Dimensions) */
+/* Master Power Button (Mandate 5: Strict Static Dimensions, No Inflation) */
 QPushButton#MasterPowerBtnRunning {{
     background-color: #10b981;
     color: #ffffff;
@@ -497,9 +518,13 @@ QPushButton#MasterPowerBtnRunning {{
     border-radius: 8px;
     font-size: 14px;
     font-weight: bold;
-    padding: 8px 18px;
-    min-width: 140px;
-    min-height: 38px;
+    padding: 0px;
+    width: 138px;
+    min-width: 138px;
+    max-width: 138px;
+    height: 36px;
+    min-height: 36px;
+    max-height: 36px;
 }}
 QPushButton#MasterPowerBtnRunning:hover {{
     background-color: #059669;
@@ -512,9 +537,13 @@ QPushButton#MasterPowerBtnStopped {{
     border-radius: 8px;
     font-size: 14px;
     font-weight: bold;
-    padding: 8px 18px;
-    min-width: 140px;
-    min-height: 38px;
+    padding: 0px;
+    width: 138px;
+    min-width: 138px;
+    max-width: 138px;
+    height: 36px;
+    min-height: 36px;
+    max-height: 36px;
 }}
 QPushButton#MasterPowerBtnStopped:hover {{
     background-color: #dc2626;
@@ -868,6 +897,19 @@ QGroupBox::title {{
     subcontrol-origin: margin;
     subcontrol-position: top left;
     padding: 0 8px;
+}}
+
+/* Live Preview Output Box (Mandate 7: Light Theme) */
+QLabel#LivePreviewBox {{
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 14px;
+    font-weight: 600;
+    color: #0284c7;
+    background-color: #f0f9ff;
+    border: 1px solid #bae6fd;
+    border-radius: 8px;
+    padding: 12px;
+    min-height: 48px;
 }}
 
 QCheckBox {{

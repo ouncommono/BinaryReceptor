@@ -1,4 +1,4 @@
-"""Thread-safe time-interval cooldown deduplication engine for BinaryReceptor v3.4.0.
+"""Thread-safe time-interval cooldown deduplication engine for BinaryReceptor v3.5.0.
 
 Replaces complex hash-based deduplication with a high-performance, rock-solid
 time-interval cooldown gate directly guarding the central scan dispatcher.
