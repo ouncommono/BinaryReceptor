@@ -1,4 +1,4 @@
-"""Thread-safe time-interval cooldown deduplication engine for BinaryReceptor v3.5.0.
+"""Thread-safe time-interval cooldown deduplication engine for BinaryReceptor v3.6.0.
 
 Replaces complex hash-based deduplication with a high-performance, rock-solid
 time-interval cooldown gate directly guarding the central scan dispatcher.
@@ -102,8 +102,8 @@ class ScanDeduplicator:
                         return True, msg
 
             # Suppress duplicate if within cooldown window AND:
-            # (different transport source for rapid hybrid arrival OR identical barcode text)
-            if elapsed_ms < self.cooldown_ms and (source != self.last_scan_source or canonical == self.last_scan_text):
+            # (identical barcode text or matching scanId within cooldown window)
+            if elapsed_ms < self.cooldown_ms and canonical == self.last_scan_text:
                 self.duplicates_blocked += 1
                 if scan_id and scan_id.strip():
                     msg = (

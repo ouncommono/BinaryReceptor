@@ -68,17 +68,17 @@ jobs:
           Write-Host "Executable self-test PASSED successfully."
 
           Write-Host "[5/5] Creating distribution ZIP archive..."
-          Compress-Archive -Path dist/BinaryReceptor.exe,dist/settings.ini -DestinationPath dist/BinaryReceptor-v3.5.0-win64.zip -Force
+          Compress-Archive -Path dist/BinaryReceptor.exe,dist/settings.ini -DestinationPath dist/BinaryReceptor-v3.6.0-win64.zip -Force
 
       - name: Publish Release to GitHub Releases
         if: github.event_name != 'pull_request'
         uses: softprops/action-gh-release@v3
         with:
-          tag_name: ${{ github.ref_type == 'tag' && github.ref_name || 'v3.5.0' }}
-          name: BinaryReceptor ${{ github.ref_type == 'tag' && github.ref_name || 'v3.5.0' }}
+          tag_name: ${{ github.ref_type == 'tag' && github.ref_name || 'v3.6.0' }}
+          name: BinaryReceptor ${{ github.ref_type == 'tag' && github.ref_name || 'v3.6.0' }}
           files: |
             dist/BinaryReceptor.exe
-            dist/BinaryReceptor-v3.5.0-win64.zip
+            dist/BinaryReceptor-v3.6.0-win64.zip
           draft: false
           prerelease: false
           generate_release_notes: true

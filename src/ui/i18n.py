@@ -1,4 +1,4 @@
-"""Comprehensive bilingual localization dictionaries (English & Persian / فارسی) for BinaryReceptor v3.5.0.
+"""Comprehensive bilingual localization dictionaries (English & Persian / فارسی) for BinaryReceptor v3.6.0.
 
 Engineered with 100% key parity between 'en' and 'fa', natural professional phrasing,
 and complete isolation so English is 100% LTR and Persian is 100% RTL with zero mixed text.
@@ -10,7 +10,7 @@ from typing import Any
 TRANSLATIONS: dict[str, dict[str, str]] = {
     "en": {
         # App & Header
-        "app_title": "BinaryReceptor v3.5.0",
+        "app_title": "BinaryReceptor v3.6.0",
         "app_subtitle": "Desktop Companion Server for BinaryEye Android Barcode Scanner",
         "status_running": "SERVER ACTIVE",
         "status_stopped": "SERVER STOPPED",
@@ -205,7 +205,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "settings_reset": "Settings have been reset to factory defaults and applied.",
 
         # System Tray Menu
-        "tray_title": "BinaryReceptor v3.5.0",
+        "tray_title": "BinaryReceptor v3.6.0",
         "tray_status_header": "Status: {status}",
         "tray_start": "Start Server",
         "tray_stop": "Stop Server",
@@ -220,7 +220,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     },
     "fa": {
         # App & Header
-        "app_title": "باینری‌رسپتور v3.5.0 (BinaryReceptor)",
+        "app_title": "باینری‌رسپتور v3.6.0 (BinaryReceptor)",
         "app_subtitle": "سرور همراه ویندوز برای اسکنر بارکد گوشی اندروید BinaryEye",
         "status_running": "سرور فعال است",
         "status_stopped": "سرور متوقف شد",
@@ -415,7 +415,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "settings_reset": "تنظیمات به حالت پیش‌فرض کارخانه بازگردانده و اعمال شد.",
 
         # System Tray Menu
-        "tray_title": "باینری‌رسپتور v3.5.0",
+        "tray_title": "باینری‌رسپتور v3.6.0",
         "tray_status_header": "وضعیت: {status}",
         "tray_start": "شروع به کار سرور",
         "tray_stop": "متوقف کردن سرور",

@@ -331,10 +331,10 @@ def test_mandate_9_system_tray_hide_on_exit(tmp_path):
 # Mandate 10: Version Bump & Multi-File Consistency
 # ==============================================================================
 def test_mandate_10_version_consistency_v350():
-    """Verify v3.5.0 across version constants, mutex, and version.txt."""
-    assert __version__ == "3.5.0"
-    assert APP_ID == "BinaryReceptor.3.5.0"
-    assert APP_DISPLAY_NAME == "BinaryReceptor v3.5.0"
+    """Verify v3.6.0 across version constants, mutex, and version.txt."""
+    assert __version__ == "3.6.0"
+    assert APP_ID == "BinaryReceptor.3.6.0"
+    assert APP_DISPLAY_NAME == "BinaryReceptor v3.6.0"
 
     root = Path(__file__).resolve().parent.parent
 
@@ -342,16 +342,16 @@ def test_mandate_10_version_consistency_v350():
     ver_txt = root / "res" / "version.txt"
     if ver_txt.exists():
         content = ver_txt.read_text(encoding="utf-8")
-        assert "filevers=(3, 5, 0, 0)" in content
-        assert "prodvers=(3, 5, 0, 0)" in content
-        assert "'FileVersion', '3.5.0'" in content
-        assert "'ProductVersion', '3.5.0'" in content
+        assert "filevers=(3, 6, 0, 0)" in content
+        assert "prodvers=(3, 6, 0, 0)" in content
+        assert "'FileVersion', '3.6.0'" in content
+        assert "'ProductVersion', '3.6.0'" in content
 
     # Check main.py mutex
     main_py = (root / "src" / "main.py").read_text(encoding="utf-8")
-    assert "BinaryReceptor_3_5_0_Mutex" in main_py
+    assert "BinaryReceptor_3_6_0_Mutex" in main_py
 
     # Check workflow
     workflow = (root / ".github" / "workflows" / "build_release.yml").read_text(encoding="utf-8")
-    assert "BinaryReceptor-v3.5.0-win64.zip" in workflow
-    assert "v3.5.0" in workflow
+    assert "BinaryReceptor-v3.6.0-win64.zip" in workflow
+    assert "v3.6.0" in workflow

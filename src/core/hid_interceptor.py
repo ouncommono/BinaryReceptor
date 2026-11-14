@@ -1,4 +1,4 @@
-"""Global Windows Low-Level Keyboard Hook (WH_KEYBOARD_LL) and HID Intervention Engine for BinaryReceptor v3.5.0.
+"""Global Windows Low-Level Keyboard Hook (WH_KEYBOARD_LL) and HID Intervention Engine for BinaryReceptor v3.6.0.
 
 Provides:
   - Global low-level keyboard interception using native Win32 SetWindowsHookExW.
