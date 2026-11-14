@@ -1,4 +1,4 @@
-﻿"""World-class bilingual (Persian RTL & English LTR) dashboard for BinaryReceptor v3.1.0."""
+"""World-class bilingual (Persian RTL & English LTR) dashboard for BinaryReceptor v3.1.0."""
 from __future__ import annotations
 
 import csv
@@ -39,6 +39,7 @@ from PySide6.QtWidgets import (
     QFileDialog,
     QFrame,
     QScrollArea,
+    QSizePolicy,
 )
 
 from src.config import (

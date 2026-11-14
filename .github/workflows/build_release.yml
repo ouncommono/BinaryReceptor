@@ -18,6 +18,7 @@ permissions:
 
 env:
   NODE_OPTIONS: "--no-deprecation"
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
 
 jobs:
   build-and-release:
@@ -47,19 +48,27 @@ jobs:
       - name: Setup Virtual Environment and Build Executable
         shell: pwsh
         run: |
-          Write-Host "[1/4] Setting up clean isolated virtual environment..."
+          Write-Host "[1/5] Setting up clean isolated virtual environment..."
           python -m venv .build_venv
           .build_venv\Scripts\Activate.ps1
           python -m pip install --upgrade pip
           pip install -r requirements-build.txt
 
-          Write-Host "[2/4] Running pytest test suite..."
+          Write-Host "[2/5] Running pytest test suite..."
           pytest -v tests/
 
-          Write-Host "[3/4] Compiling standalone executable..."
+          Write-Host "[3/5] Compiling standalone executable..."
           python build.py
 
-          Write-Host "[4/4] Creating distribution ZIP archive..."
+          Write-Host "[4/5] Explicit post-build executable smoke test verification..."
+          & dist\BinaryReceptor.exe --self-test
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "Executable self-test FAILED with exit code $LASTEXITCODE!"
+            exit $LASTEXITCODE
+          }
+          Write-Host "Executable self-test PASSED successfully."
+
+          Write-Host "[5/5] Creating distribution ZIP archive..."
           Compress-Archive -Path dist/BinaryReceptor.exe,dist/settings.ini -DestinationPath dist/BinaryReceptor-v3.2.0-win64.zip -Force
 
       - name: Publish Release to GitHub Releases

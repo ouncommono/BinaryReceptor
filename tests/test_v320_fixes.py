@@ -229,3 +229,11 @@ def test_pure_python_png_validity():
     img = Image.open(io.BytesIO(png_bytes))
     dim = (4 + 2 * 2) * 6  # 8 * 6 = 48
     assert img.size == (dim, dim)
+
+
+def test_main_self_test_flag():
+    """Verify that run_self_test() executes all subsystems and GUI initialization with 0 errors."""
+    from src.main import run_self_test
+    exit_code = run_self_test()
+    assert exit_code == 0
+
