@@ -38,6 +38,8 @@ VK_V = 0x56
 VK_C = 0x43
 VK_A = 0x41
 
+EXTRA_INFO_SIGNATURE = 0x5B524350  # "BRCP" in hex: identifies BinaryReceptor-injected keystrokes
+
 ULONG_PTR = ctypes.c_size_t
 
 
@@ -196,7 +198,7 @@ class KeyInjector:
                     wScan=0,
                     dwFlags=dw_flags,
                     time=0,
-                    dwExtraInfo=0,
+                    dwExtraInfo=EXTRA_INFO_SIGNATURE,
                 )
             ),
         )
@@ -214,7 +216,7 @@ class KeyInjector:
                     wScan=code_unit,
                     dwFlags=dw_flags,
                     time=0,
-                    dwExtraInfo=0,
+                    dwExtraInfo=EXTRA_INFO_SIGNATURE,
                 )
             ),
         )

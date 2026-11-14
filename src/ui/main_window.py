@@ -61,6 +61,8 @@ from src.core.qr_helper import (
     get_primary_lan_ip,
 )
 from src.core.sound import play_scanner_beep
+from src.core.bt_radio import BluetoothRadioController, bt_radio_controller
+from src.core.keyboard_hook import LowLevelKeyboardHook
 from src.ui.i18n import tr
 from src.ui.icon_gen import ensure_icons_exist
 from src.ui.styles import DARK_STYLESHEET, LIGHT_STYLESHEET
@@ -153,6 +155,13 @@ class MainWindow(QMainWindow):
         self.bt_server: BluetoothServerController | None = None
         self.is_server_active = False
 
+        # Tier 1 & Tier 2: Low-Level Keyboard Hook & Bluetooth Radio Controller
+        self.bt_radio = bt_radio_controller
+        self.keyboard_hook = LowLevelKeyboardHook(
+            on_barcode_captured=self._on_hook_barcode_captured,
+            mode_getter=lambda: self.config.mode,
+        )
+
         # Staged UI Settings state (for deferred save)
         self.has_unsaved_changes = False
         self._is_loading_settings_form = False
@@ -217,10 +226,15 @@ class MainWindow(QMainWindow):
 
         header_layout.addStretch()
 
-        # Master Power Button
+        # Master Power Button (Requirement 5: explicit sizing & initial sync to eliminate size glitch)
         self.btn_master_power = QPushButton()
         self.btn_master_power.setObjectName("MasterPowerBtnStopped")
+        self.btn_master_power.setMinimumWidth(140)
+        self.btn_master_power.setMinimumHeight(38)
+        self.btn_master_power.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
         self.btn_master_power.clicked.connect(self.toggle_server)
+        self._update_power_button()
+        self.btn_master_power.updateGeometry()
         header_layout.addWidget(self.btn_master_power)
 
         # Theme Switcher Button
@@ -871,8 +885,9 @@ class MainWindow(QMainWindow):
 
         for ms_val, label in [(500, "500ms"), (1000, "1s"), (1500, "1.5s"), (2000, "2s"), (3000, "3s")]:
             btn = QPushButton(label)
-            btn.setObjectName("SecondaryBtn")
-            btn.setFixedHeight(24)
+            btn.setObjectName("PresetIntervalBtn")
+            btn.setMinimumHeight(28)
+            btn.setFixedHeight(28)
             btn.clicked.connect(lambda checked=False, v=ms_val: self.spin_dedup_win.setValue(v))
             preset_row.addWidget(btn)
         preset_row.addStretch()
@@ -1153,9 +1168,10 @@ class MainWindow(QMainWindow):
         bt_ok = False
         http_ok = False
 
-        # Requirement 1: Strict Operation Mode Isolation
-        # If mode is http only, Bluetooth MUST NOT be started under any circumstances!
+        # Requirement 1 & 2: Strict Operation Mode Isolation & Radio Control
+        # If mode is http only, Bluetooth MUST NOT be started and radio is turned OFF programmatically
         if mode in ("both", "bluetooth"):
+            threading.Thread(target=self.bt_radio.restore_radio_state, daemon=True).start()
             if not self.bt_server or not self.bt_server.is_running:
                 self.bt_server = BluetoothServerController(
                     service_uuid=self.config.service_uuid,
@@ -1171,6 +1187,7 @@ class MainWindow(QMainWindow):
             if self.bt_server:
                 self.bt_server.stop()
                 self.bt_server = None
+            threading.Thread(target=self.bt_radio.ensure_radio_off_for_http_mode, daemon=True).start()
 
         # If mode is bluetooth only, HTTP server MUST NOT be started!
         if mode in ("both", "http"):
@@ -1191,6 +1208,9 @@ class MainWindow(QMainWindow):
                 self.http_server.stop()
                 self.http_server = None
 
+        # Start Tier 1 Low-Level Keyboard Hook for Bluetooth HID burst interception
+        self.keyboard_hook.start()
+
         self.is_server_active = bt_ok or http_ok
         self._update_power_button()
         self._update_status_card_styles()
@@ -1204,6 +1224,10 @@ class MainWindow(QMainWindow):
         if self.bt_server:
             self.bt_server.stop()
             self.bt_server = None
+
+        # Restore Bluetooth radio if we modified it
+        threading.Thread(target=self.bt_radio.restore_radio_state, daemon=True).start()
+        self.keyboard_hook.stop()
 
         self.is_server_active = False
         self._update_power_button()
@@ -1227,13 +1251,18 @@ class MainWindow(QMainWindow):
 
         # Immediate isolation enforcement
         if self.is_server_active:
-            if mode == "http" and self.bt_server:
-                self.bt_server.stop()
-                self.bt_server = None
-            elif mode == "bluetooth" and self.http_server:
-                self.http_server.stop()
-                self.http_server = None
+            if mode == "http":
+                if self.bt_server:
+                    self.bt_server.stop()
+                    self.bt_server = None
+                threading.Thread(target=self.bt_radio.ensure_radio_off_for_http_mode, daemon=True).start()
+            elif mode == "bluetooth":
+                if self.http_server:
+                    self.http_server.stop()
+                    self.http_server = None
+                threading.Thread(target=self.bt_radio.restore_radio_state, daemon=True).start()
             elif mode == "both":
+                threading.Thread(target=self.bt_radio.restore_radio_state, daemon=True).start()
                 if not self.bt_server:
                     self.start_server()
                 if not self.http_server:
@@ -1248,6 +1277,24 @@ class MainWindow(QMainWindow):
 
         self._update_status_card_styles()
         self.tray.update_state(self.is_server_active, self.config.mode, self.config.language)
+
+    def _on_hook_barcode_captured(self, barcode: str, source: str = "Bluetooth") -> None:
+        """Receive barcode string captured from OS-level Bluetooth HID by WH_KEYBOARD_LL hook."""
+        payload = ScanPayload(
+            content=barcode,
+            format="BLUETOOTH_HID",
+            source=source,
+            client_address="Bluetooth-HID",
+        )
+        self.enqueue_scan(payload)
+
+    def ProcessIncomingBarcode(self, payload: ScanPayload | str, source: str = "Bluetooth") -> None:
+        """Central ingestion entry point for external Bluetooth HID or HTTP scans."""
+        if isinstance(payload, str):
+            p = ScanPayload(content=payload, format="BLUETOOTH_HID", source=source)
+        else:
+            p = payload
+        self.enqueue_scan(p)
 
     def _update_power_button(self) -> None:
         if self.is_server_active:
@@ -1429,26 +1476,28 @@ class MainWindow(QMainWindow):
             dedup_enabled = self.config.deduplication_enabled
             mode = (self.config.mode or "both").strip().lower()
 
+            is_dup, dup_msg = self.dedup.check_and_record(
+                canonical_content,
+                source=payload.source,
+                scan_id=payload.scan_id,
+            )
+
             # In Hybrid (both) mode (or whenever Duplicate Protection is enabled):
-            # if elapsed_ms < cooldown_ms AND (source != last_scan_source OR cleaned_text == last_scan_text),
-            # immediately suppress the second scan, increment the Duplicates Blocked counter, log it as suppressed,
-            # and return before executing any typing or clipboard output.
-            if dedup_enabled or mode == "both":
-                if elapsed_ms < cooldown_ms and (payload.source != self._last_scan_source or canonical_content == self._last_scan_text):
-                    self.cnt_dedup += 1
-                    self.signals.stats_updated.emit()
-                    self.signals.scan_received.emit(
-                        payload,
-                        tr("status_dedup", self.config.language),
-                        f"[Cooldown Gate] Suppressed duplicate scan via {payload.source} ({int(elapsed_ms)}ms < {int(cooldown_ms)}ms, previous was {self._last_scan_source})",
-                    )
-                    return
+            # if within cooldown or duplicate scanId, suppress immediately
+            if (dedup_enabled or mode == "both") and is_dup:
+                self.cnt_dedup += 1
+                self.signals.stats_updated.emit()
+                self.signals.scan_received.emit(
+                    payload,
+                    tr("status_dedup", self.config.language),
+                    dup_msg,
+                )
+                return
 
             # Otherwise, update tracker before releasing lock
             self._last_scan_timestamp = time.monotonic()
             self._last_scan_text = canonical_content
             self._last_scan_source = payload.source
-            self.dedup.check_and_record(canonical_content, source=payload.source)
 
         # ----------------------------------------------------------------------
         # 3. Format / Symbology Filter
@@ -1877,6 +1926,11 @@ class MainWindow(QMainWindow):
 
     def exit_application(self) -> None:
         self.stop_server()
+        try:
+            self.keyboard_hook.stop()
+            self.bt_radio.restore_radio_state()
+        except Exception:
+            pass
         self._worker_stop.set()
         self.config_manager.close()
         QApplication.quit()

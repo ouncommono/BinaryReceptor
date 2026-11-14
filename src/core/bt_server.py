@@ -244,6 +244,10 @@ class BluetoothServerController:
 
     def start(self) -> tuple[bool, str]:
         """Start listening for incoming Bluetooth connections from paired devices."""
+        if self.mode_checker and self.mode_checker().strip().lower() == "http":
+            self._set_status("Disabled by Mode")
+            return False, "Bluetooth server disabled in HTTP Server Only mode"
+
         if self.is_running:
             return True, "Bluetooth server already running"
 

@@ -25,6 +25,7 @@ class ScanDeduplicator:
         self.last_scan_timestamp: float = 0.0
         self.last_scan_text: str = ""
         self.last_scan_source: str = ""
+        self.seen_scan_ids: dict[str, float] = {}
 
         # Running statistics
         self.total_received: int = 0
@@ -85,15 +86,29 @@ class ScanDeduplicator:
                 self.last_scan_source = source
                 return False, f"Accepted from {source} (Deduplication disabled)"
 
+            # 1. Primary Key scanId check for BinaryEye HTTP retries
+            clean_scan_id = scan_id.strip() if scan_id else ""
+            if clean_scan_id:
+                # Prune older than 60s
+                cutoff = now - 60.0
+                self.seen_scan_ids = {k: v for k, v in self.seen_scan_ids.items() if v >= cutoff}
+                if clean_scan_id in self.seen_scan_ids:
+                    id_elapsed = (now - self.seen_scan_ids[clean_scan_id]) * 1000.0
+                    self.duplicates_blocked += 1
+                    return True, (
+                        f"[Cooldown Gate] Ignored duplicate scanId '{clean_scan_id}' via {source} "
+                        f"(already processed via {self.last_scan_source} {int(id_elapsed)}ms ago)"
+                    )
+
             elapsed_ms = (now - self.last_scan_timestamp) * 1000.0
 
             # Suppress duplicate if within cooldown window AND:
             # (different transport source for rapid hybrid arrival OR identical barcode text)
             if elapsed_ms < self.cooldown_ms and (source != self.last_scan_source or canonical == self.last_scan_text):
                 self.duplicates_blocked += 1
-                if scan_id and scan_id.strip():
+                if clean_scan_id:
                     msg = (
-                        f"[Cooldown Gate] Ignored duplicate scanId '{scan_id.strip()}' via {source} "
+                        f"[Cooldown Gate] Ignored duplicate scanId '{clean_scan_id}' via {source} "
                         f"(already processed via {self.last_scan_source} {int(elapsed_ms)}ms ago)"
                     )
                 else:
@@ -107,6 +122,8 @@ class ScanDeduplicator:
             self.last_scan_timestamp = now
             self.last_scan_text = canonical
             self.last_scan_source = source
+            if clean_scan_id:
+                self.seen_scan_ids[clean_scan_id] = now
             return False, f"Accepted from {source}"
 
     def reset_stats(self) -> None:
@@ -115,6 +132,7 @@ class ScanDeduplicator:
             self.last_scan_timestamp = 0.0
             self.last_scan_text = ""
             self.last_scan_source = ""
+            self.seen_scan_ids.clear()
             self.total_received = 0
             self.duplicates_blocked = 0
 

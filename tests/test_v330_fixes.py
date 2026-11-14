@@ -33,10 +33,10 @@ from src.ui.i18n import TRANSLATIONS, tr
 
 
 def test_v330_version_and_metadata():
-    """Requirement 8: Verify version 3.3.0 metadata across all exports."""
-    assert __version__ == "3.3.0"
-    assert APP_ID == "BinaryReceptor.3.3.0"
-    assert "v3.3.0" in APP_DISPLAY_NAME
+    """Requirement 8: Verify version metadata across all exports."""
+    assert __version__ == "3.4.0"
+    assert APP_ID == "BinaryReceptor.3.4.0"
+    assert "v3.4.0" in APP_DISPLAY_NAME
 
 
 def test_operation_mode_isolation_bluetooth_dropped_in_http_mode():

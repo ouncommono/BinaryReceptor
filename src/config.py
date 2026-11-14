@@ -1,4 +1,4 @@
-"""Configuration manager for BinaryReceptor v3.3.0.
+"""Configuration manager for BinaryReceptor v3.4.0.
 
 Provides deterministic settings.ini path resolution (alongside the executable),
 automatic default generation with comprehensive comments, live file-watcher hot-reload,

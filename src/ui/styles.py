@@ -46,6 +46,9 @@ QPushButton#MasterPowerBtnRunning {{
     font-size: 14px;
     font-weight: bold;
     padding: 8px 18px;
+    min-width: 140px;
+    min-height: 38px;
+    text-align: center;
 }}
 QPushButton#MasterPowerBtnRunning:hover {{
     background-color: #047857;
@@ -59,6 +62,9 @@ QPushButton#MasterPowerBtnStopped {{
     font-size: 14px;
     font-weight: bold;
     padding: 8px 18px;
+    min-width: 140px;
+    min-height: 38px;
+    text-align: center;
 }}
 QPushButton#MasterPowerBtnStopped:hover {{
     background-color: #991b1b;
@@ -313,14 +319,31 @@ QPushButton#BtnResetDefaults:hover {{
     background-color: #78350f;
 }}
 
+QPushButton#PresetIntervalBtn {{
+    background-color: #334155;
+    color: #f8fafc;
+    border: 1px solid #475569;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 2px 10px;
+    min-height: 28px;
+    text-align: center;
+}}
+QPushButton#PresetIntervalBtn:hover {{
+    background-color: #475569;
+}}
+
 QPushButton#ChipBtn {{
     background-color: #1e293b;
     color: #38bdf8;
     border: 1px solid #0284c7;
     border-radius: 14px;
-    padding: 4px 12px;
+    padding: 2px 10px;
     font-size: 12px;
     font-weight: 600;
+    min-height: 28px;
+    text-align: center;
 }}
 QPushButton#ChipBtn:hover {{
     background-color: #0369a1;
@@ -479,6 +502,9 @@ QPushButton#MasterPowerBtnRunning {{
     font-size: 14px;
     font-weight: bold;
     padding: 8px 18px;
+    min-width: 140px;
+    min-height: 38px;
+    text-align: center;
 }}
 QPushButton#MasterPowerBtnRunning:hover {{
     background-color: #059669;
@@ -492,6 +518,9 @@ QPushButton#MasterPowerBtnStopped {{
     font-size: 14px;
     font-weight: bold;
     padding: 8px 18px;
+    min-width: 140px;
+    min-height: 38px;
+    text-align: center;
 }}
 QPushButton#MasterPowerBtnStopped:hover {{
     background-color: #dc2626;
@@ -742,14 +771,31 @@ QPushButton#BtnResetDefaults:hover {{
     background-color: #fde68a;
 }}
 
+QPushButton#PresetIntervalBtn {{
+    background-color: #e2e8f0;
+    color: #1e293b;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 2px 10px;
+    min-height: 28px;
+    text-align: center;
+}}
+QPushButton#PresetIntervalBtn:hover {{
+    background-color: #cbd5e1;
+}}
+
 QPushButton#ChipBtn {{
     background-color: #f0f9ff;
     color: #0284c7;
     border: 1px solid #bae6fd;
     border-radius: 14px;
-    padding: 4px 12px;
+    padding: 2px 10px;
     font-size: 12px;
     font-weight: 600;
+    min-height: 28px;
+    text-align: center;
 }}
 QPushButton#ChipBtn:hover {{
     background-color: #0284c7;

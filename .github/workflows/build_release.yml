@@ -68,7 +68,9 @@ jobs:
           Write-Host "Executable self-test PASSED successfully."
 
           Write-Host "[5/5] Creating distribution ZIP archive..."
-          Compress-Archive -Path dist/BinaryReceptor.exe,dist/settings.ini -DestinationPath dist/BinaryReceptor-v3.3.0-win64.zip -Force
+          $ver = (python -c "from src.version import __version__; print(__version__)").Trim()
+          $zipName = "BinaryReceptor-v${ver}-win64.zip"
+          Compress-Archive -Path dist/BinaryReceptor.exe,dist/settings.ini -DestinationPath "dist/$zipName" -Force
 
       - name: Publish Release to GitHub Releases
         if: github.event_name != 'pull_request'
@@ -76,11 +78,13 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          $tag = if ('${{ github.ref_type }}' -eq 'tag') { '${{ github.ref_name }}' } else { 'v3.3.0' }
+          $ver = (python -c "from src.version import __version__; print(__version__)").Trim()
+          $zipName = "BinaryReceptor-v${ver}-win64.zip"
+          $tag = if ('${{ github.ref_type }}' -eq 'tag') { '${{ github.ref_name }}' } else { "v$ver" }
           Write-Host "Publishing release $tag to GitHub Releases page with --latest..."
           if (gh release view $tag 2>$null) {
-            gh release upload $tag dist/BinaryReceptor.exe dist/BinaryReceptor-v3.3.0-win64.zip --clobber
+            gh release upload $tag dist/BinaryReceptor.exe "dist/$zipName" --clobber
             gh release edit $tag --title "BinaryReceptor $tag" --notes "Official Release $tag" --latest
           } else {
-            gh release create $tag dist/BinaryReceptor.exe dist/BinaryReceptor-v3.3.0-win64.zip --target "${{ github.sha }}" --title "BinaryReceptor $tag" --notes "Official Release $tag" --latest
+            gh release create $tag dist/BinaryReceptor.exe "dist/$zipName" --target "${{ github.sha }}" --title "BinaryReceptor $tag" --notes "Official Release $tag" --latest
           }

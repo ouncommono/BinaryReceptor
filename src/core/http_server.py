@@ -45,6 +45,9 @@ CONTENT_PARAM_KEYS = {
 FORMAT_PARAM_KEYS = {"format", "symbology", "type"}
 RAW_PARAM_KEYS = {"raw", "result_bytes", "bytes"}
 SCAN_ID_KEYS = {"scanid", "scan_id", "id", "uuid"}
+ERROR_LEVEL_KEYS = {"errorcorrectionlevel", "error_correction_level", "ecl", "ec_level"}
+SCANNER_ID_KEYS = {"scannerid", "scanner_id", "deviceid", "device_id"}
+VERSION_KEYS = {"version", "ver"}
 
 
 @dataclass
@@ -53,6 +56,9 @@ class ScanPayload:
     format: str = ""
     raw: str = ""
     scan_id: str | None = None
+    error_correction_level: str = ""
+    scanner_id: str = ""
+    version: str = ""
     source: str = "HTTP"
     client_address: str = ""
     headers: dict[str, str] = field(default_factory=dict)
@@ -78,6 +84,9 @@ def parse_binaryeye_request(
     fmt: str = ""
     raw_bytes_str: str = ""
     scan_id: str | None = None
+    ec_level: str = ""
+    scanner_id: str = ""
+    version_str: str = ""
 
     content_type = headers.get("content-type", "").lower()
 
@@ -100,6 +109,12 @@ def parse_binaryeye_request(
                         raw_bytes_str = v
                     elif lk in SCAN_ID_KEYS and isinstance(v, (str, int)):
                         scan_id = str(v)
+                    elif lk in ERROR_LEVEL_KEYS and isinstance(v, str):
+                        ec_level = v
+                    elif lk in SCANNER_ID_KEYS and isinstance(v, (str, int)):
+                        scanner_id = str(v)
+                    elif lk in VERSION_KEYS and isinstance(v, (str, int, float)):
+                        version_str = str(v)
         except Exception:
             pass
 
@@ -122,6 +137,12 @@ def parse_binaryeye_request(
                     raw_bytes_str = val
                 elif lk in SCAN_ID_KEYS:
                     scan_id = val
+                elif lk in ERROR_LEVEL_KEYS:
+                    ec_level = val
+                elif lk in SCANNER_ID_KEYS:
+                    scanner_id = val
+                elif lk in VERSION_KEYS:
+                    version_str = val
         except Exception:
             pass
 
@@ -152,6 +173,12 @@ def parse_binaryeye_request(
                         fmt = val
                     elif lk in SCAN_ID_KEYS:
                         scan_id = val
+                    elif lk in ERROR_LEVEL_KEYS:
+                        ec_level = val
+                    elif lk in SCANNER_ID_KEYS:
+                        scanner_id = val
+                    elif lk in VERSION_KEYS:
+                        version_str = val
             except Exception:
                 pass
 
@@ -181,6 +208,9 @@ def parse_binaryeye_request(
                 format=fmt,
                 raw=raw_bytes_str,
                 scan_id=scan_id,
+                error_correction_level=ec_level,
+                scanner_id=scanner_id,
+                version=version_str,
                 source="HTTP",
                 client_address=client_ip,
                 headers=headers,
@@ -194,6 +224,7 @@ def parse_binaryeye_request(
 class BinaryReceptorHTTPHandler(BaseHTTPRequestHandler):
     """Zero-latency request handler returning immediate 200 OK to BinaryEye."""
 
+    protocol_version = "HTTP/1.1"
     server: "BinaryReceptorHTTPServer"
 
     def log_message(self, format: str, *args: Any) -> None:
@@ -214,14 +245,31 @@ class BinaryReceptorHTTPHandler(BaseHTTPRequestHandler):
         self.send_header("Content-Length", "2")
         self.end_headers()
         self.wfile.write(b"{}")
+        try:
+            self.wfile.flush()
+        except Exception:
+            pass
 
     def _handle_any_request(self) -> None:
-        # 1. Read request body if present
+        # 1. Read entire incoming request body before responding to prevent TCP reset
         body_bytes = b""
         try:
             content_length = int(self.headers.get("content-length", 0))
             if content_length > 0:
-                body_bytes = self.rfile.read(min(content_length, 2 * 1024 * 1024))  # 2MB limit
+                body_bytes = self.rfile.read(content_length)
+            elif self.headers.get("transfer-encoding", "").lower() == "chunked":
+                chunks = []
+                while True:
+                    line = self.rfile.readline().strip()
+                    if not line:
+                        break
+                    chunk_size = int(line, 16)
+                    if chunk_size == 0:
+                        self.rfile.readline()
+                        break
+                    chunks.append(self.rfile.read(chunk_size))
+                    self.rfile.readline()
+                body_bytes = b"".join(chunks)
         except Exception:
             body_bytes = b""
 

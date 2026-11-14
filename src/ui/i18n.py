@@ -1,4 +1,4 @@
-"""Comprehensive bilingual localization dictionaries (English & Persian / فارسی) for BinaryReceptor v3.3.0.
+"""Comprehensive bilingual localization dictionaries (English & Persian / فارسی) for BinaryReceptor v3.4.0.
 
 Engineered with 100% key parity between 'en' and 'fa', natural professional phrasing,
 and complete isolation so English is 100% LTR and Persian is 100% RTL with zero mixed text.
@@ -10,7 +10,7 @@ from typing import Any
 TRANSLATIONS: dict[str, dict[str, str]] = {
     "en": {
         # App & Header
-        "app_title": "BinaryReceptor v3.3.0",
+        "app_title": "BinaryReceptor v3.4.0",
         "app_subtitle": "Desktop Companion Server for BinaryEye Android Barcode Scanner",
         "status_running": "SERVER ACTIVE",
         "status_stopped": "SERVER STOPPED",
@@ -43,8 +43,8 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         # Tab Titles
         "tab_dashboard": "Live Scan Activity",
         "tab_wedge": "Prefix / Suffix Builder",
-        "tab_connection": "Connection & QR Code",
-        "tab_settings": "Settings & Hardware",
+        "tab_connection": "Connection QR Code",
+        "tab_settings": "Settings Hardware",
 
         # Dashboard / Activity Log
         "col_time": "Timestamp",
@@ -119,11 +119,18 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "btn_copy_url": "Copy URL",
         "lbl_desc_qr_url": "Scan this QR code in BinaryEye or enter the URL manually in BinaryEye -> Settings -> Forwarding.",
         "lbl_desc_qr_encode": "Encode any raw text into a standard barcode for phone camera scanning.",
+        "desc_qr_encode": "Encode any raw text into a standard barcode for phone camera scanning.",
         "lbl_encode_text": "Content to Encode:",
         "lbl_encode_format": "Symbology:",
+        "url_copied": "Forwarding URL successfully copied to clipboard!",
 
         # Settings Tab
         "settings_title": "Configuration & Hardware Settings",
+        "sec_general": "General & Operation Mode",
+        "sec_network": "Network & HTTP Server",
+        "sec_dedup": "Deduplication Engine (Cooldown Gate)",
+        "sec_wedge": "Keystroke Output & Wedging",
+        "sec_filters": "Filters & Transforms",
         "grp_operation": "Server & Channel Operation",
         "grp_typing": "Keystroke & Output Emulation",
         "grp_dedup": "Smart Deduplication & Filtering",
@@ -132,6 +139,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "grp_system": "System & Windows Integration",
 
         "lbl_op_mode": "Active Operation Mode:",
+        "lbl_mode": "Active Operation Mode:",
         "opt_mode_both": "Hybrid Simultaneous (Bluetooth + HTTP)",
         "opt_mode_http": "HTTP Server Only (Wi-Fi / LAN)",
         "opt_mode_bt": "Bluetooth RFCOMM Only",
@@ -193,7 +201,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "settings_reset": "Settings have been reset to factory defaults and applied.",
 
         # System Tray Menu
-        "tray_title": "BinaryReceptor v3.2.0",
+        "tray_title": "BinaryReceptor v3.4.0",
         "tray_status_header": "Status: {status}",
         "tray_start": "Start Server",
         "tray_stop": "Stop Server",
@@ -208,7 +216,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     },
     "fa": {
         # App & Header
-        "app_title": "باینری‌رسپتور v3.2.0 (BinaryReceptor)",
+        "app_title": "باینری‌رسپتور v3.4.0 (BinaryReceptor)",
         "app_subtitle": "سرور همراه ویندوز برای اسکنر بارکد گوشی اندروید BinaryEye",
         "status_running": "سرور فعال است",
         "status_stopped": "سرور متوقف شد",
@@ -242,7 +250,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "tab_dashboard": "گزارش زنده اسکن‌ها",
         "tab_wedge": "تنظیم پیشوند و پسوند (Prefix/Suffix)",
         "tab_connection": "اتصال و کد QR",
-        "tab_settings": "تنظیمات و سخت‌افزار",
+        "tab_settings": "تنظیمات سخت‌افزار",
 
         # Dashboard / Activity Log
         "col_time": "زمان اسکن",
@@ -317,11 +325,18 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "btn_copy_url": "کپی کردن آدرس",
         "lbl_desc_qr_url": "این کد QR را در گوشی اسکن نمایید یا نشانی فوق را به صورت دستی در BinaryEye ← تنظیمات ← ارسال اسکن وارد کنید.",
         "lbl_desc_qr_encode": "تبدیل هرگونه متن دلخواه به بارکد استاندارد جهت اسکن آزمایشی توسط دوربین گوشی.",
+        "desc_qr_encode": "تبدیل هرگونه متن دلخواه به بارکد استاندارد جهت اسکن آزمایشی توسط دوربین گوشی.",
         "lbl_encode_text": "متن جهت تبدیل به بارکد:",
         "lbl_encode_format": "نوع بارکد (Symbology):",
+        "url_copied": "نشانی سرور با موفقیت در کلیپ‌بورد کپی شد!",
 
         # Settings Tab
         "settings_title": "تنظیمات نرم‌افزار و رابط کاربری",
+        "sec_general": "عمومی و حالت عملکرد",
+        "sec_network": "شبکه و سرور HTTP",
+        "sec_dedup": "موتور حذف تکرار (بازه خنک‌سازی)",
+        "sec_wedge": "خروجی کلیدها و پیشوند/پسوند",
+        "sec_filters": "فیلترها و تبدیل داده‌ها",
         "grp_operation": "حالت کاری سرور و دریافت",
         "grp_typing": "شبیه‌سازی تایپ و خروجی در ویندوز",
         "grp_dedup": "فیلتر ضدتکرار هوشمند (Deduplication)",
@@ -330,6 +345,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "grp_system": "همگام‌سازی با ویندوز",
 
         "lbl_op_mode": "حالت دریافت بارکد:",
+        "lbl_mode": "حالت دریافت بارکد:",
         "opt_mode_both": "ترکیبی همزمان (بلوتوث + HTTP)",
         "opt_mode_http": "فقط سرور تحت شبکه (HTTP / Wi-Fi)",
         "opt_mode_bt": "فقط بلوتوث (Bluetooth RFCOMM)",
@@ -391,7 +407,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "settings_reset": "تنظیمات به حالت پیش‌فرض کارخانه بازگردانده و اعمال شد.",
 
         # System Tray Menu
-        "tray_title": "باینری‌رسپتور v3.2.0",
+        "tray_title": "باینری‌رسپتور v3.4.0",
         "tray_status_header": "وضعیت: {status}",
         "tray_start": "شروع به کار سرور",
         "tray_stop": "متوقف کردن سرور",

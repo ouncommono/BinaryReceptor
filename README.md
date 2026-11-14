@@ -1,11 +1,11 @@
-# BinaryReceptor v3.3.0
+# BinaryReceptor v3.4.0
 
 > **The ultra-lightweight, zero-bug, high-performance desktop companion server for [BinaryEye](https://github.com/markusfisch/BinaryEye) on Android.**  
 > Native Windows architecture with Bluetooth RFCOMM, HTTP webhook listener, SendInput keyboard wedge, and visual token builder.
 
 [![Python](https://img.shields.io/badge/Python-3.11%20%7C%203.12%20%7C%203.14-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![Platform](https://img.shields.io/badge/Platform-Windows%2010%20%2F%2011-0078D6?logo=windows&logoColor=white)](https://microsoft.com/windows)
-[![Release](https://img.shields.io/badge/Release-v3.3.0-10B981)](https://github.com/ouncommono/BinaryReceptor/releases)
+[![Release](https://img.shields.io/badge/Release-v3.4.0-10B981)](https://github.com/ouncommono/BinaryReceptor/releases)
 [![Build Status](https://github.com/ouncommono/BinaryReceptor/actions/workflows/build_release.yml/badge.svg)](https://github.com/ouncommono/BinaryReceptor/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
@@ -20,7 +20,7 @@
 # 🇬🇧 English Documentation
 
 ## Executive Overview & Architecture
-**BinaryReceptor v3.3.0** is the official modern desktop companion server for the Android barcode scanner [BinaryEye](https://github.com/markusfisch/BinaryEye). It transforms any Android smartphone running BinaryEye into an industrial-grade wireless barcode scanner for Windows PCs.
+**BinaryReceptor v3.4.0** is the official modern desktop companion server for the Android barcode scanner [BinaryEye](https://github.com/markusfisch/BinaryEye). It transforms any Android smartphone running BinaryEye into an industrial-grade wireless barcode scanner for Windows PCs.
 
 Whenever a 1D linear barcode (EAN-13, Code 128, UPC-A, Code 39) or 2D matrix code (QR Code, DataMatrix, Aztec, PDF417) is scanned on mobile, BinaryReceptor captures the payload instantaneously over **Bluetooth RFCOMM**, **Wi-Fi / LAN HTTP**, or **both simultaneously in Hybrid mode**. The scanned data is wedged directly into the active Windows application (Excel, ERP systems, accounting software, Point of Sale, web browsers, Notepad) using low-level Win32 `SendInput` Unicode keystrokes or instant clipboard paste (`Ctrl+V`).
 
@@ -73,7 +73,7 @@ Whenever a 1D linear barcode (EAN-13, Code 128, UPC-A, Code 39) or 2D matrix cod
 ## 🚀 Quick Start Guide
 
 ### Option 1: Standalone Executable (Recommended)
-1. Download `BinaryReceptor-v3.3.0-win64.zip` from [GitHub Releases](https://github.com/ouncommono/BinaryReceptor/releases/latest).
+1. Download `BinaryReceptor-v3.4.0-win64.zip` from [GitHub Releases](https://github.com/ouncommono/BinaryReceptor/releases/latest).
 2. Extract the archive to any folder on your Windows PC.
 3. Launch `BinaryReceptor.exe`.
 4. Click **Start Server** (or enable auto-start in Settings).
@@ -213,7 +213,7 @@ pytest -v tests/
 ## 📜 License & Credits
 
 This project is licensed under the [MIT License](LICENSE).  
-Architecture, modernization, and version 3.3.0 engineering by **ouncommono**.  
+Architecture, modernization, and version 3.4.0 engineering by **ouncommono**.  
 Original upstream repository: [KamaleiZestri/BinaryReceptor](https://github.com/KamaleiZestri/BinaryReceptor).  
 Android Scanner Client: [BinaryEye](https://github.com/markusfisch/BinaryEye) by Markus Fisch.
 
@@ -222,7 +222,7 @@ Android Scanner Client: [BinaryEye](https://github.com/markusfisch/BinaryEye) by
 # 🇮🇷 راهنمای جامع فارسی (Persian Documentation)
 
 ## معرفی و معماری نرم‌افزار
-**باینری‌رسپتور نسخه ۳.۳.۰ (BinaryReceptor v3.3.0)** نرم‌افزار سرور همراه و واسط صفحه‌کلید (Keyboard Wedge) برای اپلیکیشن محبوب و متن‌باز [BinaryEye](https://github.com/markusfisch/BinaryEye) در گوشی‌های اندروید است. این برنامه گوشی هوشمند شما را به یک بارکدخوان بی‌سیم صنعتی و فوق‌سریع برای کامپیوترهای ویندوز تبدیل می‌کند.
+**باینری‌رسپتور نسخه ۳.۴.۰ (BinaryReceptor v3.4.0)** نرم‌افزار سرور همراه و واسط صفحه‌کلید (Keyboard Wedge) برای اپلیکیشن محبوب و متن‌باز [BinaryEye](https://github.com/markusfisch/BinaryEye) در گوشی‌های اندروید است. این برنامه گوشی هوشمند شما را به یک بارکدخوان بی‌سیم صنعتی و فوق‌سریع برای کامپیوترهای ویندوز تبدیل می‌کند.
 
 با اسکن هرگونه بارکد میله‌ای (EAN-13، Code 128، UPC، Code 39) یا کدهای دوبعدی (QR Code، DataMatrix، Aztec، PDF417) با دوربین گوشی، محتوای اسکن‌شده به صورت آنی از طریق **بلوتوث (RFCOMM)** یا **شبکه وای‌فای (HTTP)** و یا **هر دو به صورت همزمان (حالت ترکیبی)** به کامپیوتر منتقل شده و مستقیماً در نرم‌افزار فعال ویندوز (اکسل، نرم‌افزارهای حسابداری، انبارداری، مرورگر، نوت‌پد) تایپ می‌شود.
 
@@ -275,7 +275,7 @@ Android Scanner Client: [BinaryEye](https://github.com/markusfisch/BinaryEye) by
 ## 🚀 راهنمای شروع سریع
 
 ### روش ۱: فایل اجرایی پرتابل بدون نیاز به نصب (پیشنهادی)
-۱. بسته فشرده `BinaryReceptor-v3.3.0-win64.zip` را از بخش [انتشارهای گیت‌هاب (Releases)](https://github.com/ouncommono/BinaryReceptor/releases/latest) دانلود کنید.  
+۱. بسته فشرده `BinaryReceptor-v3.4.0-win64.zip` را از بخش [انتشارهای گیت‌هاب (Releases)](https://github.com/ouncommono/BinaryReceptor/releases/latest) دانلود کنید.  
 ۲. محتویات فایل زیپ را در یک پوشه دلخواه استخراج کنید.  
 ۳. فایل `BinaryReceptor.exe` را اجرا کنید.  
 ۴. روی دکمه **شروع به کار سرور** کلیک نمایید.
