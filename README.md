@@ -17,7 +17,7 @@
 
 ---
 
-# 🇬🇧 English Documentation
+# 🇺🇸 English Documentation
 
 ## Overview & System Architecture
 **BinaryReceptor** is the official production-grade Windows companion server for the open-source Android barcode scanner [BinaryEye](https://github.com/markusfisch/BinaryEye). It instantly turns any Android smartphone running BinaryEye into an industrial-grade, zero-latency wireless barcode scanner for Windows workstations.
@@ -55,7 +55,7 @@ Whenever a 1D linear barcode (EAN-13, Code 128, UPC-A, Code 39) or 2D matrix cod
 
 ---
 
-## Core Features & Capabilities
+## ⚡ Core Features & Capabilities
 
 | Feature | Technical Implementation | Benefit to User |
 | :--- | :--- | :--- |
@@ -72,7 +72,7 @@ Whenever a 1D linear barcode (EAN-13, Code 128, UPC-A, Code 39) or 2D matrix cod
 
 ---
 
-## Step-by-Step Pairing Guide with BinaryEye
+## 📱 Step-by-Step Pairing Guide with BinaryEye
 
 ### Method A: Bluetooth RFCOMM (Zero-Network Wireless)
 Ideal for locations without local Wi-Fi, air-gapped workstations, or mobile field operations.
@@ -117,7 +117,7 @@ Ideal for office networks, warehouse Wi-Fi, or high-volume multi-device environm
 
 ---
 
-## Keystroke Injection & Output Modes
+## ⌨️ Keystroke Injection & Output Modes
 
 BinaryReceptor provides four distinct output modes configured via the UI or `settings.ini`:
 
@@ -135,7 +135,7 @@ BinaryReceptor provides four distinct output modes configured via the UI or `set
 
 ---
 
-## Prefix & Suffix Token Reference
+## 📝 Prefix & Suffix Token Reference
 
 Format incoming scans by adding navigation tokens and dynamic timestamps to the **Prefix** and **Suffix** fields:
 
@@ -152,7 +152,7 @@ Format incoming scans by adding navigation tokens and dynamic timestamps to the 
 
 ---
 
-## Configuration Reference (`settings.ini`)
+## ⚙️ Configuration Reference (`settings.ini`)
 
 `settings.ini` is located in the same directory as `BinaryReceptor.exe` and is automatically hot-reloaded upon modification:
 
@@ -178,7 +178,7 @@ Format incoming scans by adding navigation tokens and dynamic timestamps to the 
 
 ---
 
-## Quick Start & Installation
+## 🚀 Quick Start & Installation
 
 ### Option 1: Standalone Portable Executable (Recommended)
 1. Download `BinaryReceptor-v3.6.0-win64.zip` from [GitHub Releases](https://github.com/ouncommono/BinaryReceptor/releases/latest).
@@ -201,7 +201,7 @@ python run.py
 
 ---
 
-## Troubleshooting & FAQ
+## 🔧 Troubleshooting & FAQ
 
 - **Android Client Error Beeps during HTTP forwarding?**  
   BinaryReceptor v3.6.0 responds in sub-millisecond time with a `200 OK` JSON header before asynchronous keystroke processing, eliminating Android client timeout beeps. Ensure your phone and PC can reach each other over your local Wi-Fi.
@@ -211,6 +211,15 @@ python run.py
   BinaryReceptor bypasses virtual-key layout translation by sending UTF-16 code points via `KEYEVENTF_UNICODE`. Text arrives cleanly regardless of the active language on Windows.
 - **Windows Defender SmartScreen warning on first launch?**  
   Click *More info* and select *Run anyway*. The binary is built transparently via GitHub Actions CI/CD directly from this open-source repository.
+
+---
+
+## 📜 License & Credits
+
+This project is licensed under the [MIT License](LICENSE).  
+Architecture, modernization, and version 3.5.0 engineering by **ouncommono**.  
+Original upstream repository: [KamaleiZestri/BinaryReceptor](https://github.com/KamaleiZestri/BinaryReceptor).  
+Android Scanner Client: [BinaryEye](https://github.com/markusfisch/BinaryEye) by Markus Fisch.
 
 ---
 
@@ -252,7 +261,7 @@ python run.py
 
 ---
 
-## قابلیت‌ها و ویژگی‌های کلیدی
+## ⚡ قابلیت‌ها و ویژگی‌های کلیدی
 
 | قابلیت | پیاده‌سازی فنی | مزیت برای کاربر |
 | :--- | :--- | :--- |
@@ -269,7 +278,7 @@ python run.py
 
 ---
 
-## راهنمای گام‌به‌گام اتصال و جفت‌سازی با BinaryEye
+## 📱 راهنمای گام‌به‌گام اتصال و جفت‌سازی با BinaryEye
 
 ### روش اول: بلوتوث RFCOMM (بدون نیاز به شبکه و اینترنت)
 مناسب برای رایانه‌های فاقد شبکه، لپ‌تاپ‌های همراه یا محیط‌های ایزوله صنعتی.
@@ -314,7 +323,7 @@ python run.py
 
 ---
 
-## حالت‌های خروجی و تزریق کلیدها
+## 📝 حالت‌های خروجی و تزریق کلیدها
 
 باینری‌رسپتور چهار روش مجزا برای درج داده‌های اسکن‌شده در اختیار شما قرار می‌دهد:
 
@@ -332,7 +341,7 @@ python run.py
 
 ---
 
-## مرجع توکن‌های پیشوند و پسوند
+## ⌨️ مرجع توکن‌های پیشوند و پسوند
 
 شما می‌توانید با اضافه کردن توکن‌های استاندارد در فیلدهای **پیشوند (Prefix)** و **پسوند (Suffix)**، رفتار اسکنر را سفارشی‌سازی کنید:
 
@@ -349,7 +358,7 @@ python run.py
 
 ---
 
-## مرجع تنظیمات نرم‌افزار (`settings.ini`)
+## ⚙️ مرجع تنظیمات نرم‌افزار (`settings.ini`)
 
 فایل `settings.ini` در پوشه برنامه در کنار فایل اجرایی قرار دارد و تغییرات آن در کمتر از یک ثانیه به صورت خودکار در برنامه اعمال می‌شود:
 
@@ -375,7 +384,7 @@ python run.py
 
 ---
 
-## راهنمای نصب و اجرای سریع
+## 🚀 راهنمای نصب و اجرای سریع
 
 ### روش اول: نسخه مستقل بدون نیاز به نصب (پیشنهادی)
 ۱. بسته فشرده `BinaryReceptor-v3.6.0-win64.zip` را از بخش [انتشارهای گیت‌هاب (Releases)](https://github.com/ouncommono/BinaryReceptor/releases/latest) دانلود کنید.  
@@ -398,7 +407,7 @@ python run.py
 
 ---
 
-## عیب‌یابی و پرسش‌های متداول
+## 🔧 عیب‌یابی و پرسش‌های متداول
 
 - **پخش بوق خطا در اپلیکیشن گوشی هنگام اسکن تحت شبکه (HTTP)؟**  
   باینری‌رسپتور نسخه ۳.۶.۰ پاسخ `200 OK` را در کسری از میلی‌ثانیه پیش از پردازش کلیدها ارسال می‌کند تا هیچ خطایی در گوشی ثبت نشود. اطمینان حاصل کنید فایروال ویندوز دسترسی پورت ۲۴۲۳۴ را مسدود نکرده باشد.
@@ -408,3 +417,12 @@ python run.py
   باینری‌رسپتور از موتور تایپ مستقیم کد یونیکد استفاده می‌کند که ساختار چینش زبان فعال ویندوز را نادیده گرفته و همیشه بارکد را به شکل استاندارد تایپ می‌کند.
 - **پیام Windows Defender SmartScreen در اولین اجرا؟**  
   روی گزینه *More info* و سپس *Run anyway* کلیک کنید. این فایل به صورت خودکار و شفاف توسط پایپ‌لاین CI/CD گیت‌هاب از روی کدهای همین مخزن ساخته شده است.
+
+---
+
+## 📜 پروانه نرم‌افزار و حقوق نشر (License & Credits)
+
+این پروژه تحت مجوز آزاد بین‌المللی [MIT License](LICENSE) منتشر شده است.  
+طراحی معماری، بازنویسی مدرن و توسعه نسخه ۳.۵.۰ توسط **ouncommono**.  
+پروژه پایه و مخزن اصلی: [KamaleiZestri/BinaryReceptor](https://github.com/KamaleiZestri/BinaryReceptor).  
+اپلیکیشن کلاینت اندروید: [BinaryEye](https://github.com/markusfisch/BinaryEye) اثر Markus Fisch.
