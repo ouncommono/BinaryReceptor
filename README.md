@@ -217,7 +217,7 @@ python run.py
 ## 📜 License & Credits
 
 This project is licensed under the [MIT License](LICENSE).  
-Architecture, modernization, and version 3.5.0 engineering by **ouncommono**.  
+Architecture, modernization, and version 3.6.0 engineering by **ouncommono**.  
 Original upstream repository: [KamaleiZestri/BinaryReceptor](https://github.com/KamaleiZestri/BinaryReceptor).  
 Android Scanner Client: [BinaryEye](https://github.com/markusfisch/BinaryEye) by Markus Fisch.
 
@@ -423,6 +423,6 @@ python run.py
 ## 📜 پروانه نرم‌افزار و حقوق نشر (License & Credits)
 
 این پروژه تحت مجوز آزاد بین‌المللی [MIT License](LICENSE) منتشر شده است.  
-طراحی معماری، بازنویسی مدرن و توسعه نسخه ۳.۵.۰ توسط **ouncommono**.  
+طراحی معماری، بازنویسی مدرن و توسعه نسخه ۳.۶.۰ توسط **ouncommono**.  
 پروژه پایه و مخزن اصلی: [KamaleiZestri/BinaryReceptor](https://github.com/KamaleiZestri/BinaryReceptor).  
 اپلیکیشن کلاینت اندروید: [BinaryEye](https://github.com/markusfisch/BinaryEye) اثر Markus Fisch.
